@@ -8,24 +8,22 @@
 package novello;
 
 import com.xapp.objectmodelling.annotations.TreeMeta;
-import com.xapp.objectmodelling.tree.TreeNode;
 
 import java.util.List;
 
 public class Book
 {
-    private Text m_text;
+    private Section m_section;
 
-
-    @TreeMeta(leafTypes = {Text.class, Content.class})
-    public Text getText()
+    @TreeMeta(leafTypes = {Section.class, Content.class})
+    public Section getSection()
     {
-        return m_text;
+        return m_section;
     }
 
-    public void setText(Text text)
+    public void setSection(Section section)
     {
-        m_text = text;
+        m_section = section;
     }
 
     @Override
@@ -39,7 +37,7 @@ public class Book
         Content previous = null;
         Content next = null;
         boolean found = false;
-        List<Content> contents = m_text.enumerate(Content.class);
+        List<Content> contents = m_section.enumerate(Content.class);
         for (Content content : contents)
         {
             if (content.equals(thisContent))

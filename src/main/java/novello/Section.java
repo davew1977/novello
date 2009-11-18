@@ -14,7 +14,10 @@ import com.xapp.objectmodelling.tree.Tree;
 
 import java.util.List;
 
-public class Text extends Tree
+/**
+ * "Sections" mark the structure of the document. Any text entered here is metadata
+ */
+public class Section extends Tree
 {
     private String m_text;
     private boolean m_excluded;
@@ -35,15 +38,15 @@ public class Text extends Tree
     public int wordcount()
     {
         int count = 0;
-        List<Text> list = children();
-        for (Text text : list)
+        List<Section> list = children();
+        for (Section section : list)
         {
-            if(!text.isExcluded())count+=text.wordcount();
+            if(!section.isExcluded())count+= section.wordcount();
         }
         return count;
     }
 
-    public List<Text> children()
+    public List<Section> children()
     {
         return (List) getChildren();
     }

@@ -106,11 +106,11 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             m_mainEditor.setChunk(content.latest(), content);
             m_appData.setLastEdited(content);
         }
-        if (node.wrappedObject() instanceof Text)
+        if (node.wrappedObject() instanceof Section)
         {
-            Text text = (Text) node.wrappedObject();
-            html.p("word count: " + text.wordcount());
-            render(html, text, true);
+            Section section = (Section) node.wrappedObject();
+            html.p("word count: " + section.wordcount());
+            render(html, section, true);
             m_browserView.setHTML(html);
         }
         else if (node.wrappedObject() instanceof TextChunk)
@@ -200,15 +200,15 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         }
     }
 
-    private void render(HTML html, Text text, boolean isRoot)
+    private void render(HTML html, Section section, boolean isRoot)
     {
-        if (text instanceof Content)
+        if (section instanceof Content)
         {
             if (isRoot)
             {
-                html.i().color(Color.BLUE).p(text.getText()).i().color(Color.BLACK);
+                html.i().color(Color.BLUE).p(section.getText()).i().color(Color.BLACK);
             }
-            Content content = (Content) text;
+            Content content = (Content) section;
             int pixels = content.getGrade() * 6;
             String colors = pixels == 0 ? "red,red" : pixels == 600 ? "green,green" : "green,red";
             int noVersions = content.getVersions().size();
@@ -218,7 +218,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         }
         else
         {
-            Text chapter = text;
+            Section chapter = section;
             html.h(1, chapter.getName());
             List<Content> list = chapter.enumerate(Content.class);
             for (Content content : list)
@@ -231,11 +231,11 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     private HTML render(Book book)
     {
         HTML html = new HTMLImpl();
-        Text text = book.getText();
-        List<TreeNode> treeNodes = text.getChildren();
+        Section section = book.getSection();
+        List<TreeNode> treeNodes = section.getChildren();
         for (TreeNode treeNode : treeNodes)
         {
-            Text t = (Text) treeNode;
+            Section t = (Section) treeNode;
             if (!t.isExcluded())
             {
                 html.h(1, t.getName());

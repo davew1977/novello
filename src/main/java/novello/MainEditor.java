@@ -112,7 +112,7 @@ public class MainEditor extends JSplitPane
         {
             TextEditor textEditor = m_chunkEditor.getTextEditor();
             textEditor.newPopUp();
-            textEditor.addPopUpAction(new GotoAction(m_novelloApp.getBook().getText(), "goto"));
+            textEditor.addPopUpAction(new GotoAction(m_novelloApp.getBook().getSection(), "goto"));
             textEditor.addInsertAction("make split", "-->split");
             textEditor.showPopUp();
         }
@@ -122,32 +122,32 @@ public class MainEditor extends JSplitPane
     {
         Object m_subject;
 
-        public GotoAction(Text text, String name)
+        public GotoAction(Section section, String name)
         {
             super(name);
-            m_subject = text;
+            m_subject = section;
         }
 
         public void actionPerformed(ActionEvent e)
         {
-            if (m_subject instanceof Text)
+            if (m_subject instanceof Section)
             {
-                Text text = (Text) m_subject;
+                Section section = (Section) m_subject;
 
                 TextEditor textEditor = m_chunkEditor.getTextEditor();
                 textEditor.newPopUp();
 
-                if(text instanceof Content)
+                if(section instanceof Content)
                 {
-                    Content content = (Content) text;
+                    Content content = (Content) section;
                     m_novelloApp.getAppContainer().expand(content);
                 }
                 else
                 {
-                    java.util.List<TreeNode> children = text.getChildren();
+                    java.util.List<TreeNode> children = section.getChildren();
                     for (TreeNode child : children)
                     {
-                        textEditor.addPopUpAction(new GotoAction((Text) child, child.getName()));
+                        textEditor.addPopUpAction(new GotoAction((Section) child, child.getName()));
                     }
                     textEditor.showPopUp();
                 }

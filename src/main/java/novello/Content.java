@@ -9,12 +9,14 @@ package novello;
 
 import com.xapp.objectmodelling.annotations.Transient;
 import com.xapp.objectmodelling.annotations.ListType;
-import com.xapp.application.annotations.EditorWidget;
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class Content extends Text
+/**
+ * Contents are nodes that contain real text for the document
+ */
+public class Content extends Section
 {
     private List<TextChunk> m_versions = new ArrayList<TextChunk>();
     private int m_grade;
