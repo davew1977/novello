@@ -39,7 +39,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         m_browserView = new BrowserView(this);
         m_browserView.setPreferredSize(new Dimension(600, m_browserView.getPreferredSize().height));
         m_classDatabase = m_appContainer.getGuiContext().getClassDatabase();
-        m_browserView.setHTML(render(applicationContainer.getGuiContext().getInstance()));
+        //m_browserView.setHTML(render(applicationContainer.getGuiContext().getInstance()));
         m_mainEditor = new MainEditor(this);
         m_appContainer.setUserPanel(m_mainEditor, false);
         m_mainEditor.setResizeWeight(0.5);
@@ -173,6 +173,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
                 }
                 Content newContent = (Content) m_classDatabase.newInstance(Content.class);
                 newContent.setName(name);
+                newContent.setParent(content.getParent());
                 TextChunk newTextChunk = (TextChunk) m_classDatabase.newInstance(TextChunk.class);
                 newTextChunk.setText(chunk);
                 newContent.getVersions().add(newTextChunk);

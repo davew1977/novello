@@ -26,6 +26,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private JScrollPane m_scrollPane;
     private TextEditor m_textEditor;
     private static final Color DARK_BLUE = new Color(0,0,180);
+    private static final Color DARKGREEN = new Color(0, 128, 0);
+
 
     public String validate()
     {
@@ -65,34 +67,30 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor = new TextEditor()
             {
                 Pattern pattern = Pattern.compile("<[\\w\\W&&[^>]]*>");
+                Pattern speech = Pattern.compile("[\"“].*?[\"”]");
                 public void handleNewText(int offs, String newText, Line linePreEdit, List<Line> lineOrLinesPostEdit)
                 {
                     for (Line line : lineOrLinesPostEdit)
                     {
-                        Matcher matcher = pattern.matcher(line.m_text);
-                        int lastEnd = line.m_startIndex;
-                        int lastEndInLine = 0;
-                        SimpleAttributeSet as = new SimpleAttributeSet();
+                        setBold(line.m_startIndex, line.length(), false);
+                        setForegroundColor(line.m_startIndex, line.length(), Color.BLACK);
+                        Matcher matcher = speech.matcher(line.m_text);
+                        while (matcher.find())
+                        {
+                            int start = line.m_startIndex + matcher.start();
+                            int length = matcher.group().length();
+                            setBold(start, length);
+                            setForegroundColor(start, length, DARKGREEN);
+                        }
+
+                        matcher = pattern.matcher(line.m_text);
                         while(matcher.find())
                         {
-                            //set start chunk black
-                            int end = matcher.start() - lastEndInLine;
-                            setBold(lastEnd, end, false);
-                            setForegroundColor(lastEnd, end, Color.BLACK);
-                            //set tag blue
-                            int length = matcher.end() - matcher.start();
                             int start = line.m_startIndex + matcher.start();
+                            int length = matcher.group().length();
                             setForegroundColor(start, length, DARK_BLUE);
                             setBold(start, length);
-                            lastEnd = line.m_startIndex + matcher.end();
-                            lastEndInLine = matcher.end();
                         }
-                        //set the trailing bit black
-                        as = new SimpleAttributeSet();
-                        StyleConstants.setForeground(as, Color.BLACK);
-                        m_textEditor.getDoc().setCharacterAttributes(lastEnd, line.length() - lastEndInLine, as, true);
-
-
                     }
                 }
 
@@ -101,6 +99,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     handleNewText(-1, null, null, Arrays.asList(lineAffected));
                 }
             };
+            m_textEditor.setFont(Font.decode("Courier-PLAIN-12"));
+
             m_textEditor.setWordwrap(true);
             m_textEditor.addLiveTemplate("a", "<a href=\"$END$\"></a>");
             m_textEditor.addLiveTemplate("b", "<b>$END$</b>");
@@ -110,6 +110,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.addLiveTemplate("tr", "<tr>$END$</tr>");
             m_textEditor.addLiveTemplate("td", "<td>$END$</td>");
             m_textEditor.addLiveTemplate("p", "<pre>$END$</pre>");
+            m_textEditor.addLiveTemplate("s", "“$END$”");
 
         }
         return m_textEditor;
