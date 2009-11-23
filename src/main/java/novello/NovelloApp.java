@@ -19,11 +19,15 @@ import com.xapp.objectmodelling.core.PropertyChangeTuple;
 import com.xapp.objectmodelling.tree.Tree;
 import com.xapp.objectmodelling.tree.TreeNode;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import novello.about.AboutPane;
 
 public class NovelloApp extends SimpleApplication<Book> implements BrowserViewListener
 {
@@ -68,6 +72,22 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             m_mainEditor.setChunk(lastEdited.latest(), lastEdited);
             m_appContainer.expand(lastEdited);
         }
+
+        JMenu help = new JMenu("Help");
+        JMenuItem about = new JMenuItem(new AbstractAction("About")
+        {
+
+            public void actionPerformed(ActionEvent e)
+            {
+                JFrame f = SwingUtils.createFrame(new AboutPane());
+                f.setTitle("About");
+                f.setLocationRelativeTo(m_appContainer.getMainFrame());
+                f.setVisible(true);
+            }
+        });
+        help.add(about);
+        SwingUtils.setFont(help);
+        m_appContainer.getMenuBar().add(help);
     }
 
     public SpecialTreeGraphics createSpecialTreeGraphics()
@@ -191,13 +211,14 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         {
             Content content = (Content) parent;
             TextChunk textChunk = (TextChunk) newChild;
-            textChunk.setText(content.getLatest());
+            textChunk.setText(content.getLatestText());
         }
         if (newChild instanceof Content)
         {
             Content content = (Content) newChild;
             Tree tree = (Tree) parent;
             content.setName(String.valueOf(tree.getChildren().size() + 1));
+            content.getVersions().add(new TextChunk());
         }
     }
 
@@ -215,7 +236,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             int noVersions = content.getVersions().size();
             String versionsText = "&nbsp;&nbsp;&nbsp;" + noVersions + " version" + (noVersions > 1 ? "s" : "");
             html.table(pixels + "," + (600 - pixels) + ",200", "&nbsp;,&nbsp;," + versionsText, colors + ",white");
-            html.p(content.getLatest());
+            html.p(content.getLatestText());
         }
         else
         {
@@ -244,7 +265,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
                 for (TreeNode node : treeNodeList)
                 {
                     Content c = (Content) node;
-                    html.p(c.getLatest());
+                    html.p(c.getLatestText());
                 }
 
             }

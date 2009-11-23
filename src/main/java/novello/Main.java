@@ -21,7 +21,8 @@ public class Main
     public static void main(String[] args)
     {
         SwingUtils.DEFAULT_FRAME_ICON = ICON;
-        SwingUtils.DEFAULT_FONT = Font.decode("Dialog-12");
+        SwingUtils.DEFAULT_FONT = Font.decode("Tahoma-11");
+        
         ApplicationContainer applicationContainer = Launcher.run(Book.class, new NovelloApp(), args[0]);
         //mainView.getGuiContext().getClassDatabase().getClassModel(Content.class).restrictProperty("Name");
         

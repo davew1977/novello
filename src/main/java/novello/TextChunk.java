@@ -14,7 +14,7 @@ import com.xapp.marshalling.annotations.FormattedText;
 
 public class TextChunk
 {
-    private String m_text;
+    private String m_text = "";
 
     @FormattedText
     @EditorWidget(value=ChunkEditor.class)

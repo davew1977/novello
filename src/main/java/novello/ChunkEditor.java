@@ -12,22 +12,35 @@ import com.xapp.application.editor.widgets.AbstractPropertyWidget;
 import com.xapp.application.api.WidgetContext;
 
 import javax.swing.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import java.util.List;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import novello.wordhandling.Dictionary;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
     private JScrollPane m_scrollPane;
     private TextEditor m_textEditor;
-    private static final Color DARK_BLUE = new Color(0,0,180);
+    private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
+    private Dictionary m_dict;
 
+
+    Pattern html = Pattern.compile("<[\\w\\W&&[^>]]*>");
+    Pattern speech = Pattern.compile("[\"“].*?[\"”]");
+    Pattern comment = Pattern.compile("<!--.*?-->");
+    Pattern wholeLine = Pattern.compile(".*");
+
+    public void setDict(Dictionary dict)
+    {
+        m_dict = dict;
+    }
 
     public String validate()
     {
@@ -55,7 +68,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         if (m_scrollPane == null)
         {
             m_scrollPane = new JScrollPane(getTextEditor(), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            m_scrollPane.setPreferredSize(new Dimension(300,400));
+            m_scrollPane.setPreferredSize(new Dimension(300, 400));
         }
         return m_scrollPane;
     }
@@ -66,8 +79,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         {
             m_textEditor = new TextEditor()
             {
-                Pattern pattern = Pattern.compile("<[\\w\\W&&[^>]]*>");
-                Pattern speech = Pattern.compile("[\"“].*?[\"”]");
                 public void handleNewText(int offs, String newText, Line linePreEdit, List<Line> lineOrLinesPostEdit)
                 {
                     for (Line line : lineOrLinesPostEdit)
@@ -83,13 +94,23 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setForegroundColor(start, length, DARKGREEN);
                         }
 
-                        matcher = pattern.matcher(line.m_text);
-                        while(matcher.find())
+                        matcher = html.matcher(line.m_text);
+                        while (matcher.find())
                         {
                             int start = line.m_startIndex + matcher.start();
                             int length = matcher.group().length();
                             setForegroundColor(start, length, DARK_BLUE);
                             setBold(start, length);
+                        }
+
+                        matcher = comment.matcher(line.m_text);
+                        while (matcher.find())
+                        {
+                            int start = line.m_startIndex + matcher.start();
+                            int length = matcher.group().length();
+                            setForegroundColor(start, length, Color.GRAY);
+                            setBold(start, length, false);
+                            setItalic(start, length);
                         }
                     }
                 }
@@ -110,10 +131,42 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.addLiveTemplate("tr", "<tr>$END$</tr>");
             m_textEditor.addLiveTemplate("td", "<td>$END$</td>");
             m_textEditor.addLiveTemplate("p", "<pre>$END$</pre>");
+            m_textEditor.addLiveTemplate("c", "<!--$END$-->");
             m_textEditor.addLiveTemplate("s", "“$END$”");
+
+            m_textEditor.addAction("control W", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent e)
+                {
+                    TextEditor.Line line = m_textEditor.getCurrentLine();
+                    findMatch(line);
+                }
+            });
+
+            m_textEditor.addAction("control shift SPACE", new WordCompleteAction());
 
         }
         return m_textEditor;
+    }
+
+    private void findMatch(TextEditor.Line line)
+    {
+        Pattern[] patterns = new Pattern[]{comment, html, speech, wholeLine};
+        for (Pattern pattern : patterns)
+        {
+            Matcher matcher = pattern.matcher(line.m_text);
+            while (matcher.find())
+            {
+                int i = line.m_caretIndexInLine - matcher.start();
+                if (i >= 0 && i < matcher.group().length())
+                {
+                    int start = line.m_startIndex + matcher.start();
+                    int end = line.m_startIndex + matcher.end();
+                    m_textEditor.setSelectionStart(start);
+                    m_textEditor.setSelectionEnd(end);
+                }
+            }
+        }
     }
 
     public String getValue()
@@ -124,5 +177,32 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public void setValue(String value, Object target)
     {
         getTextEditor().setText(value);
+    }
+
+    private class WordCompleteAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            JPopupMenu popup = m_textEditor.newPopUp();
+            String wordToCaret = m_textEditor.getCurrentLine().wordToCaret();
+            List<String> words = m_dict.findWords(wordToCaret);
+            for (String word : words)
+            {
+                m_textEditor.addInsertAction(word, word, wordToCaret.length());
+            }
+            m_textEditor.showPopUp();
+            popup.addKeyListener(new KeyAdapter()
+            {
+                public void keyTyped(KeyEvent e)
+                {
+                    System.out.println("hello");
+                    char aChar = e.getKeyChar();
+                    if(Character.isLetter(aChar))
+                    {
+                        new WordCompleteAction().actionPerformed(null);
+                    }
+                }
+            });
+        }
     }
 }

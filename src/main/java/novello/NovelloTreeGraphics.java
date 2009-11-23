@@ -15,6 +15,8 @@ public class NovelloTreeGraphics extends SimpleTreeGraphics
 {
     private static final ImageIcon CONTENT = loadImage("/pen2.png");
     private static final ImageIcon CHUNK = loadImage("/small-pen.png");
+    public static final ImageIcon OOM_ICON = loadImage("/oom-icon.png");
+    public static final ImageIcon SVN_ICON = loadImage("/svn-logo.png");
 
     public ImageIcon getNodeImage(Node node)
     {

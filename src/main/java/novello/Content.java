@@ -24,6 +24,7 @@ public class Content extends Section
     public Content()
     {
         setName("blank");
+        
     }
 
     @ListType(TextChunk.class)
@@ -38,9 +39,9 @@ public class Content extends Section
     }
 
     @Transient
-    public String getLatest()
+    public String getLatestText()
     {
-        return m_versions.isEmpty() ? "" : m_versions.get(m_versions.size()-1).getText();
+        return latest().getText();
     }
 
     //@EditorWidget(value=SliderWidget.class, args="0,100")
@@ -57,11 +58,11 @@ public class Content extends Section
     @Override
     public int wordcount()
     {
-        return getLatest().split("\\s").length;
+        return getLatestText().split("\\s").length;
     }
 
     public TextChunk latest()
     {
-        return m_versions.isEmpty() ? null : m_versions.get(m_versions.size()-1);
+        return m_versions.get(m_versions.size()-1);
     }
 }

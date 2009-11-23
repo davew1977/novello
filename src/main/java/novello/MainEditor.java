@@ -18,6 +18,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.AdjustmentEvent;
 
+import novello.wordhandling.DictFileHandler;
+
 public class MainEditor extends JSplitPane
 {
     private NovelloApp m_novelloApp;
@@ -61,6 +63,8 @@ public class MainEditor extends JSplitPane
                 jsp.getVerticalScrollBar().setValue(e.getValue());
             }
         });
+
+        m_chunkEditor.setDict(DictFileHandler.loadBritish());
     }
 
     public void setChunk(TextChunk textChunk, Content parentContent)
@@ -75,9 +79,18 @@ public class MainEditor extends JSplitPane
     private void render()
     {
         HTML html = new HTMLImpl();
-        html.p("word count: " + m_chunk.getText().split("\\s").length);
+        updateWordCount();
         html.p(m_chunk.getText());
         m_browserView.setHTML(html);
+    }
+
+    private void updateWordCount()
+    {
+        if (m_chunk!=null)
+        {
+            int count = m_chunk.getText().split("\\s+").length;
+            m_novelloApp.getAppContainer().setStatusMessage("word count: " + count);
+        }
     }
 
     private void store()
