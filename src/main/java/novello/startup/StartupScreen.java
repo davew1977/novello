@@ -11,58 +11,76 @@ import static com.xapp.application.utils.SwingUtils.*;
 import javax.swing.*;
 import static javax.swing.Box.*;
 import java.awt.*;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 import novello.AppData;
-import novello.NovelloFile;
-import novello.FileType;
+import novello.startup.BookFile;
 import novello.NovelloTreeGraphics;
 
 public class StartupScreen
 {
+    StartupCallback m_startupCallback;
     Box m_mainBox;
-    public StartupScreen(AppData appData)
+    private JTextField m_svnLocationTF;
+    private JButton m_checkURLButton;
+    private JTextField m_checkoutLocation;
+    private JButton m_browseCheckoutLocationButton;
+    private JTextField m_username;
+    private JTextField m_password;
+    private JButton m_openSVNBookButton;
+    private JButton m_browseFileButton;
+    private JButton m_localFileOkButton;
+    private JTextField m_locationTF;
+    private JButton m_quickLaunchOkbutton;
+    private JComboBox m_recentlyOpenedCombo;
+    private BookFile m_bookfile;
+
+    public StartupScreen(AppData appData, StartupCallback startupCallback)
     {
         super();
+        m_startupCallback = startupCallback;
 
         Box r1 = createLabelRow(20, "What would you like to do?", 400, "25", null);
         r1.setBorder(BorderFactory.createEtchedBorder());
 
-        NovelloFile[] novelloFiles = appData.getRecentlyOpened().toArray(new NovelloFile[appData.getRecentlyOpened().size()]);
-        JComboBox combo = new JComboBox(novelloFiles);
-        setComponentSize(150, 20, combo);
-        JButton b1 = createButton("OK", 90,20);
+        m_recentlyOpenedCombo = createRecentlyOpenedCombo(appData);
+        setComponentSize(150, 20, m_recentlyOpenedCombo);
+        m_quickLaunchOkbutton = createButton("OK", 90,20);
 
         Box r2 = createHorizBox(createHorizontalStrut(50), createLabel("Re-open a book:", 120, null, 20),
-                createHorizontalStrut(5), combo, createHorizontalStrut(5), b1, createHorizontalGlue());
+                createHorizontalStrut(5), m_recentlyOpenedCombo, createHorizontalStrut(5), m_quickLaunchOkbutton, createHorizontalGlue());
 
         Box top = createVertBox(createVerticalStrut(20), r2, createVerticalStrut(20));
         top.setBorder(BorderFactory.createEtchedBorder());
 
         Box r3 = createLabelRow(30, "Open book with Subversion:", 400, "20", NovelloTreeGraphics.SVN_ICON);
 
-        JTextField svnLocationTF = createTF(150,20);
-        JButton checkURLButton = createButton("Test URL", 90,20);
+        m_svnLocationTF = createTF(150,20);
+        m_checkURLButton = createButton("Test URL", 90,20);
         Box r4 = createHorizBox(createHorizontalStrut(50), createLabel("SVN location (url):", 120, null, 20),
-                svnLocationTF, createHorizontalStrut(5), checkURLButton, createHorizontalGlue());
+                m_svnLocationTF, createHorizontalStrut(5), m_checkURLButton, createHorizontalGlue());
 
-        JTextField checkoutLocation = createTF(150,20);
-        JButton browseFileButton = createButton("Browse...", 90,20);
+        m_checkoutLocation = createTF(150,20);
+        m_browseCheckoutLocationButton = createButton("Browse...", 90,20);
         Box r5 = createHorizBox(createHorizontalStrut(50),
                 createLabel("Location :", 120, null, 20),
-                checkoutLocation,
-                createHorizontalStrut(5),browseFileButton,createHorizontalGlue());
+                m_checkoutLocation,
+                createHorizontalStrut(5), m_browseCheckoutLocationButton,createHorizontalGlue());
 
-        JTextField username = createTF(90,20);
+        m_username = createTF(90,20);
         Box r6 = createHorizBox(createHorizontalStrut(50),
                 createLabel("SVN Username :", 120, null, 20),
-                username,createHorizontalStrut(155),createHorizontalGlue());
+                m_username,createHorizontalStrut(155),createHorizontalGlue());
 
-        JTextField password = createTF(90,20, true);
-        JButton okButton = createButton("OK", 90,20);
+        m_password = createTF(90,20, true);
+        m_openSVNBookButton = createButton("OK", 90,20);
         Box r7 = createHorizBox(createHorizontalStrut(50),
                 createLabel("SVN Password :", 120, null, 20),
-                password,
-                createHorizontalStrut(65),okButton,createHorizontalGlue());
+                m_password,
+                createHorizontalStrut(65), m_openSVNBookButton,createHorizontalGlue());
 
         Box middle = createVertBox(r3,r4,
                 createVerticalStrut(5), r5,createVerticalStrut(5),
@@ -71,15 +89,15 @@ public class StartupScreen
 
         Box r8 = createLabelRow(30, "Open book on your computer:", 400, "20", null);
 
-        JTextField locationTF = createTF(150,20);
-        JButton browseFileButton2 = createButton("Browse...", 90,20);
+        m_locationTF = createTF(150,20);
+        m_browseFileButton = createButton("Browse...", 90,20);
         Box r9 = createHorizBox(createHorizontalStrut(50),
                 createLabel("Location :", 120, null, 20),
-                locationTF,
-                createHorizontalStrut(5),browseFileButton2,createHorizontalGlue());
+                m_locationTF,
+                createHorizontalStrut(5), m_browseFileButton,createHorizontalGlue());
 
-        JButton localFileOkButton = createButton("OK", 90,20);
-        Box r10 = createHorizBox(createHorizontalStrut(332), localFileOkButton, createHorizontalGlue());
+        m_localFileOkButton = createButton("OK", 90,20);
+        Box r10 = createHorizBox(createHorizontalStrut(332), m_localFileOkButton, createHorizontalGlue());
 
         Box bottom = createVertBox(r8, r9, createVerticalStrut(5), r10,createVerticalStrut(10));
         bottom.setBorder(BorderFactory.createEtchedBorder());
@@ -95,6 +113,104 @@ public class StartupScreen
         setFont(r9, "Tahoma-12");
         setFont(r10, "Tahoma-12");
 
+        updateViewState();
+
+        m_browseFileButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                JFileChooser c = new JFileChooser(".");
+                setFont(c,"Tahoma-12");
+                int r = c.showOpenDialog(m_mainBox);
+                if(r== JFileChooser.APPROVE_OPTION)
+                {
+                    m_locationTF.setText(c.getSelectedFile().getAbsolutePath());
+                }
+            }
+        });
+        m_browseCheckoutLocationButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                JFileChooser c = new JFileChooser(".");
+                c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                setFont(c,"Tahoma-12");
+                int r = c.showOpenDialog(m_mainBox);
+                if(r== JFileChooser.APPROVE_OPTION)
+                {
+                    m_checkoutLocation.setText(c.getSelectedFile().getAbsolutePath());
+                }
+            }
+        });
+        m_quickLaunchOkbutton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                m_bookfile = (BookFile) m_recentlyOpenedCombo.getSelectedItem();
+                m_startupCallback.startNovello(m_bookfile);
+            }
+        });
+        m_openSVNBookButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                String checkoutFolder = m_checkoutLocation.getText();
+                String svnLocation = m_svnLocationTF.getText();
+                String username = m_username.getText();
+                String password = m_password.getText();
+                m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
+                m_startupCallback.startNovello(m_bookfile);
+            }
+        });
+        m_localFileOkButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                m_bookfile = new BookFile(m_locationTF.getText());
+                m_startupCallback.startNovello(m_bookfile);
+            }
+        });
+    }
+
+    private JComboBox createRecentlyOpenedCombo(AppData appData)
+    {
+        BookFile[] bookFiles = appData.getRecentlyOpened().toArray(new BookFile[appData.getRecentlyOpened().size()]);
+        JComboBox combo = new JComboBox(bookFiles);
+        combo.setSelectedItem(appData.getLastOpened());
+        combo.addItemListener(new ItemListener()
+        {
+            public void itemStateChanged(ItemEvent e)
+            {
+                if(e.getStateChange()== ItemEvent.SELECTED)
+                {
+                    BookFile bookFile = (BookFile) e.getItem();
+                    if(bookFile instanceof BookFileSVN)
+                    {
+                        BookFileSVN fileSVN = (BookFileSVN) bookFile;
+                        m_svnLocationTF.setText(fileSVN.getLocation());
+                        m_checkoutLocation.setText(fileSVN.getCheckoutFolder());
+                        m_username.setText(fileSVN.getSvnUsername());
+                        m_password.setText(fileSVN.getSvnPassword());
+                        m_locationTF.setText(null);
+                    }
+                    else
+                    {
+                        m_locationTF.setText(bookFile.getLocation());
+                        m_svnLocationTF.setText(null);
+                        m_checkoutLocation.setText(null);
+                        m_username.setText(null);
+                        m_password.setText(null);
+                    }
+                }
+                updateViewState();
+            }
+        });
+        return combo;
+    }
+
+    private void updateViewState()
+    {
+        m_quickLaunchOkbutton.setEnabled(m_recentlyOpenedCombo.getSelectedItem()!=null);
     }
 
     private JButton createButton(String label, int w, int h)
@@ -151,7 +267,7 @@ public class StartupScreen
 
     public void openDialog()
     {
-        JDialog jd = new JDialog((JFrame) null, "Novello", true);
+        JDialog jd = new JDialog((JFrame) null, "Novello", false);
         jd.setContentPane(m_mainBox);
         jd.pack();
         jd.setLocationRelativeTo(null);
@@ -161,9 +277,15 @@ public class StartupScreen
     public static void main(String[] args)
     {
         AppData ap = new AppData();
-        ap.getRecentlyOpened().add(new NovelloFile(FileType.SVN, "http://boo"));
-        ap.getRecentlyOpened().add(new NovelloFile(FileType.SVN, "http://foo"));
-        ap.getRecentlyOpened().add(new NovelloFile(FileType.FILESYSTEM, "local/hussl.xml"));
-        new StartupScreen(ap).openDialog();
+        ap.getRecentlyOpened().add(new BookFileSVN("http://boo", "folders/boo", "egg", "head"));
+        ap.getRecentlyOpened().add(new BookFileSVN("http://foo", "folders/foo", "egg", "head"));
+        ap.getRecentlyOpened().add(new BookFile("local/hussl.xml"));
+        new StartupScreen(ap, new StartupCallback()
+        {
+            public void startNovello(BookFile bookFile)
+            {
+                System.out.println(bookFile);
+            }
+        }).openDialog();
     }
 }
