@@ -6,6 +6,8 @@
  */
 package novello.undo;
 
+import com.xapp.application.editor.widgets.TextEditor;
+
 public class AddUpdate extends Update
 {
     public AddUpdate(int offs, String text)
@@ -21,5 +23,15 @@ public class AddUpdate extends Update
     public String toString()
     {
         return "+" + super.toString();
+    }
+
+    public void undo(TextEditor textEditor)
+    {
+        removeFrom(textEditor);
+    }
+
+    public void redo(TextEditor textEditor)
+    {
+        insertInto(textEditor);
     }
 }

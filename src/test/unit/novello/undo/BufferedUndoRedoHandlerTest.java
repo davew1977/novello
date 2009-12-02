@@ -19,7 +19,7 @@ public class BufferedUndoRedoHandlerTest extends TestCase
     public void testFlush()
     {
         TestUndoRedoHandler undoHandler = new TestUndoRedoHandler();
-        BufferedUndoRedoHandler buf = new BufferedUndoRedoHandler(undoHandler);
+        BufferedEditorListener buf = new BufferedEditorListener(undoHandler);
         buf.textAdded(5,"hello");
         buf.textAdded(10," are you there?");
         buf.textRemoved(12,"www");

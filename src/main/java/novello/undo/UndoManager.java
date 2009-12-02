@@ -8,23 +8,25 @@ package novello.undo;
 
 import novello.TextChunk;
 
-public class UndoManager implements EditorListener
+public class UndoManager implements EditorListener, UndoRedoHandler
 {
     private EditorListener m_state;
-    private BufferedUndoRedoHandler m_bufferedUndoRedoHandler;
+    private BufferedEditorListener m_bufferedEditorListener;
     private NullEditorListener m_nullEditorListener;
+    private DefaultUndoRedoHandler m_undoRedoHandler;
 
     public UndoManager()
     {
         m_nullEditorListener = new NullEditorListener();
-        m_bufferedUndoRedoHandler = new BufferedUndoRedoHandler(new DefaultUndoRedoHandler());
-        m_bufferedUndoRedoHandler.init();
+        m_undoRedoHandler = new DefaultUndoRedoHandler();
+        m_bufferedEditorListener = new BufferedEditorListener(m_undoRedoHandler);
+        m_bufferedEditorListener.init();
         m_state = m_nullEditorListener;
     }
 
     public void enable()
     {
-        m_state = m_bufferedUndoRedoHandler;
+        m_state = m_bufferedEditorListener;
     }
 
     public void disable()
@@ -42,8 +44,34 @@ public class UndoManager implements EditorListener
         m_state.textRemoved(offs, removedText);
     }
 
-    public void setSource(TextChunk textChunk)
+    public void init()
     {
-        m_bufferedUndoRedoHandler.setSource(textChunk);
+        m_bufferedEditorListener.clear();
+        m_undoRedoHandler.reset();
+    }
+
+    public boolean canUndo()
+    {
+        return m_undoRedoHandler.canUndo();
+    }
+
+    public boolean canRedo()
+    {
+        return m_undoRedoHandler.canRedo();
+    }
+
+    public Update pullUndo()
+    {
+        return m_undoRedoHandler.pullUndo();
+    }
+
+    public Update pullRedo()
+    {
+        return m_undoRedoHandler.pullRedo();
+    }
+
+    public void flush()
+    {
+        m_bufferedEditorListener.flush();
     }
 }

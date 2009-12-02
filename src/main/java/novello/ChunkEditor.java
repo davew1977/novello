@@ -39,6 +39,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     Pattern speech = Pattern.compile("[\"“].*?[\"”]");
     Pattern comment = Pattern.compile("<!--.*?-->");
     Pattern wholeLine = Pattern.compile(".*");
+    private UndoAction m_undoAction = new UndoAction();
+    private RedoAction m_redoAction = new RedoAction();
 
     public void setDict(Dictionary dict)
     {
@@ -84,7 +86,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             {
                 public void handleNewText(int offs, String newText, Line linePreEdit, List<Line> lineOrLinesPostEdit)
                 {
-                    if (newText!=null)
+                    if (newText != null)
                     {
                         m_undoManager.textAdded(offs, newText);
                     }
@@ -115,7 +117,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                         {
                             int start = line.m_startIndex + matcher.start();
                             int length = matcher.group().length();
-                            setForegroundColor(start, length, Color.GRAY);                  
+                            setForegroundColor(start, length, Color.GRAY);
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
@@ -151,10 +153,9 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 }
             });
 
-
-
             m_textEditor.addAction("control shift SPACE", new WordCompleteAction());
-
+            m_textEditor.addAction("control Z", m_undoAction);
+            m_textEditor.addAction("control shift Z", m_redoAction);
         }
         return m_textEditor;
     }
@@ -187,7 +188,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public void setValue(String value, Object target)
     {
         m_undoManager.disable();
-        m_undoManager.setSource((TextChunk) target);
+        m_undoManager.init();
         getTextEditor().setText(value);
         m_undoManager.enable();
     }
@@ -210,7 +211,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 {
                     System.out.println("hello");
                     char aChar = e.getKeyChar();
-                    if(Character.isLetter(aChar))
+                    if (Character.isLetter(aChar))
                     {
                         new WordCompleteAction().actionPerformed(null);
                     }
@@ -223,8 +224,39 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     {
         TextChunk chunk = new TextChunk();
         chunk.setText("this is a text chunk\nthis is another line");
-        ChunkEditor chunkEditor=new ChunkEditor();
+        ChunkEditor chunkEditor = new ChunkEditor();
         chunkEditor.setValue(chunk.getText(), chunk);
         SwingUtils.showInFrame(chunkEditor.getComponent());
+    }
+
+    private class UndoAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+
+            m_undoManager.disable();
+            m_undoManager.flush();
+            if (m_undoManager.canUndo())
+            {
+                Update update = m_undoManager.pullUndo();
+                update.undo(m_textEditor);
+            }
+            m_undoManager.enable();
+        }
+    }
+
+    private class RedoAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            m_undoManager.disable();
+            m_undoManager.flush();
+            if (m_undoManager.canRedo())
+            {
+                Update update = m_undoManager.pullRedo();
+                update.redo(m_textEditor);
+            }
+            m_undoManager.enable();
+        }
     }
 }

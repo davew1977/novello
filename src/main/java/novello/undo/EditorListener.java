@@ -11,4 +11,5 @@ public interface EditorListener
     void textAdded(int offs, String newText);
 
     void textRemoved(int offs, String removedText);
+    
 }

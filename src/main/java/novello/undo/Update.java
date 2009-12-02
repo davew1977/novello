@@ -6,7 +6,9 @@
  */
 package novello.undo;
 
-public abstract class Update implements Cloneable
+import com.xapp.application.editor.widgets.TextEditor;
+
+public abstract class Update implements Undoable, Cloneable
 {
     public int m_offs;
     public String m_text;
@@ -45,5 +47,18 @@ public abstract class Update implements Cloneable
     public String toString()
     {
         return m_text + "(" + m_offs + ")";
+    }
+
+    public abstract void undo(TextEditor textEditor);
+    public abstract void redo(TextEditor textEditor);
+
+    void insertInto(TextEditor textEditor)
+    {
+        textEditor.insert(m_offs, m_text);
+    }
+
+    void removeFrom(TextEditor textEditor)
+    {
+        textEditor.remove(m_offs, length());
     }
 }

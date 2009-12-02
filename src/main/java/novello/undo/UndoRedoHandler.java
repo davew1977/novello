@@ -10,5 +10,10 @@ import java.util.List;
 
 public interface UndoRedoHandler
 {
-    void handleUpdates(List<Update> updates);
+    boolean canUndo();
+    boolean canRedo();
+    public Update pullUndo();
+    public Update pullRedo();
+
+    
 }

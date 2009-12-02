@@ -14,16 +14,15 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.ArrayList;
 
-public class BufferedUndoRedoHandler implements EditorListener
+public class BufferedEditorListener implements EditorListener
 {
-    private TextChunk m_source;
-    Timer m_timer;
-    private UndoRedoHandler m_delegate;
-    List<Update> m_updates;
+    private Timer m_timer;
+    private UpdateListener m_delegate;
+    private List<Update> m_updates;
 
-    public BufferedUndoRedoHandler(UndoRedoHandler undoRedoHandler)
+    public BufferedEditorListener(UpdateListener updateListener)
     {
-        m_delegate = undoRedoHandler;
+        m_delegate = updateListener;
         m_updates = new ArrayList<Update>();
     }
 
@@ -38,10 +37,9 @@ public class BufferedUndoRedoHandler implements EditorListener
         });
         m_timer.setRepeats(true);
         m_timer.start();
-
     }
 
-    protected void flush()
+    public void flush()
     {
         //merge down the updates
         if (!m_updates.isEmpty())
@@ -63,13 +61,13 @@ public class BufferedUndoRedoHandler implements EditorListener
                 }
             }
             m_updates.clear();
-            m_delegate.handleUpdates(merged);
+            m_delegate.updates(merged);
         }
     }
 
-    public void setSource(TextChunk textChunk)
+    public void clear()
     {
-        m_source = textChunk;
+        m_updates.clear();
     }
 
     public void textAdded(int offs, String newText)
