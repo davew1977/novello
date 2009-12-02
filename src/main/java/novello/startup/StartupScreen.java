@@ -10,7 +10,6 @@ import static com.xapp.application.utils.SwingUtils.*;
 
 import javax.swing.*;
 import static javax.swing.Box.*;
-import java.awt.*;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ActionListener;
@@ -253,16 +252,6 @@ public class StartupScreen
         }
         setComponentSize(width, height, l);
         return l;
-    }
-
-    private void setComponentSize(int width, int height, JComponent l)
-    {
-        l.setPreferredSize(new Dimension(width, height));
-        l.setMinimumSize(new Dimension(width, height));
-        if (l instanceof JTextField || l instanceof JComboBox)
-        {
-            l.setMaximumSize(new Dimension(Short.MAX_VALUE, height));
-        }
     }
 
     public void openDialog()

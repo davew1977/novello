@@ -22,6 +22,9 @@ import novello.NovelloTreeGraphics;
 
 public class AboutPane extends JPanel
 {
+    private JButton m_labelButton;
+    private JButton m_bookButton;
+
     public AboutPane()
     {
         HTML html = new HTMLImpl();
@@ -29,19 +32,24 @@ public class AboutPane extends JPanel
         html.append("This project is open source.<br>");
         html.link("http://novello.sourceforge.net", "http://novello.sourceforge.net");
         html.append("<br>If you like Novello you can donate, <br>contribute with code, or buy my book, \"Oom\"");
-        JButton labelButton = new JButton(html.htmlDoc());
-        add(labelButton);
-        JButton b = new JButton(NovelloTreeGraphics.OOM_ICON);
-        add(b);
+        m_labelButton = new JButton(html.htmlDoc());
+        add(m_labelButton);
+        m_bookButton = new JButton(NovelloTreeGraphics.OOM_ICON);
+        add(m_bookButton);
         SwingUtils.setFont(this);
-        b.addActionListener(new OpenLinkAction("http://dj-webber.com"));
-        labelButton.addActionListener(new OpenLinkAction("http://novello.sourceforge.net"));
+        m_bookButton.addActionListener(new OpenLinkAction("http://www.amazon.com/dp/1439261873"));
+        m_labelButton.addActionListener(new OpenLinkAction("http://novello.sourceforge.net"));
+
+        SwingUtils.setComponentSize(80,80, m_bookButton);
+        SwingUtils.setComponentSize(245,80, m_labelButton);
     }
 
 
     public static void main(String[] args)
     {
-        SwingUtils.showInFrame(new AboutPane());
+        AboutPane aboutPane = new AboutPane();
+        SwingUtils.showInFrame(aboutPane);
+        System.out.println(aboutPane.m_labelButton.getSize());
     }
 
     private class OpenLinkAction implements ActionListener

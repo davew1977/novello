@@ -10,6 +10,7 @@ package novello;
 import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.editor.widgets.AbstractPropertyWidget;
 import com.xapp.application.api.WidgetContext;
+import com.xapp.application.utils.SwingUtils;
 
 import javax.swing.*;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import novello.wordhandling.Dictionary;
+import novello.undo.*;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
@@ -30,6 +32,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
     private Dictionary m_dict;
+    private UndoManager m_undoManager = new UndoManager();
 
 
     Pattern html = Pattern.compile("<[\\w\\W&&[^>]]*>");
@@ -81,6 +84,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             {
                 public void handleNewText(int offs, String newText, Line linePreEdit, List<Line> lineOrLinesPostEdit)
                 {
+                    if (newText!=null)
+                    {
+                        m_undoManager.textAdded(offs, newText);
+                    }
                     for (Line line : lineOrLinesPostEdit)
                     {
                         setBold(line.m_startIndex, line.length(), false);
@@ -108,15 +115,16 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                         {
                             int start = line.m_startIndex + matcher.start();
                             int length = matcher.group().length();
-                            setForegroundColor(start, length, Color.GRAY);
+                            setForegroundColor(start, length, Color.GRAY);                  
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
                     }
                 }
 
-                public void handleTextRemoved(int offs, Line lineAffected)
+                public void handleTextRemoved(int offs, int len, Line lineAffected, String removedText)
                 {
+                    m_undoManager.textRemoved(offs, removedText);
                     handleNewText(-1, null, null, Arrays.asList(lineAffected));
                 }
             };
@@ -142,6 +150,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     findMatch(line);
                 }
             });
+
+
 
             m_textEditor.addAction("control shift SPACE", new WordCompleteAction());
 
@@ -176,7 +186,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     public void setValue(String value, Object target)
     {
+        m_undoManager.disable();
+        m_undoManager.setSource((TextChunk) target);
         getTextEditor().setText(value);
+        m_undoManager.enable();
     }
 
     private class WordCompleteAction extends AbstractAction
@@ -204,5 +217,14 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 }
             });
         }
+    }
+
+    public static void main(String[] args)
+    {
+        TextChunk chunk = new TextChunk();
+        chunk.setText("this is a text chunk\nthis is another line");
+        ChunkEditor chunkEditor=new ChunkEditor();
+        chunkEditor.setValue(chunk.getText(), chunk);
+        SwingUtils.showInFrame(chunkEditor.getComponent());
     }
 }
