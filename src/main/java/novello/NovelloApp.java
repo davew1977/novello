@@ -48,10 +48,18 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         m_appContainer.setUserPanel(m_mainEditor, false);
         m_mainEditor.setResizeWeight(0.5);
 
-        final File appData = new File("app-data.xml");
-        if (appData.exists())
+        final File appDataFile = new File("app-data.xml");
+        if (appDataFile.exists())
         {
-            m_appData = m_classDatabase.createUnmarshaller(AppData.class).unmarshal(appData);
+            try
+            {
+                m_appData = m_classDatabase.createUnmarshaller(AppData.class).unmarshal(appDataFile);
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.getMessage());
+                m_appData = new AppData();
+            }
         }
         else
         {
@@ -62,7 +70,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         {
             public void execute()
             {
-                m_classDatabase.createMarshaller(AppData.class).marshal(appData, m_appData);
+                m_classDatabase.createMarshaller(AppData.class).marshal(appDataFile, m_appData);
             }
         });
 

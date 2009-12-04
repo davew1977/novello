@@ -13,6 +13,8 @@ import java.util.zip.ZipEntry;
 import java.util.Enumeration;
 import java.util.List;
 import java.io.IOException;
+import java.io.File;
+import java.net.URISyntaxException;
 
 public class DictFileHandler
 {
@@ -21,7 +23,8 @@ public class DictFileHandler
         try
         {
             Dictionary dict = new Dictionary();
-            ZipFile z = new ZipFile(zip);
+            File f = new File(DictFileHandler.class.getResource(zip).toURI());
+            ZipFile z = new ZipFile(f);
             Enumeration<? extends ZipEntry> enumeration = z.entries();
             while (enumeration.hasMoreElements())
             {
@@ -38,17 +41,21 @@ public class DictFileHandler
         {
             throw new RuntimeException(e);
         }
+        catch (URISyntaxException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void main(String[] args)
     {
-        Dictionary dictionary = DictFileHandler.load("dictionaries/british.zip");
+        Dictionary dictionary = DictFileHandler.load("/british.zip");
         List<String> words = dictionary.findWords("H");
         System.out.println("words = " + words);
     }
 
     public static Dictionary loadBritish()
     {
-        return DictFileHandler.load("dictionaries/british.zip");
+        return DictFileHandler.load("/british.zip");
     }
 }

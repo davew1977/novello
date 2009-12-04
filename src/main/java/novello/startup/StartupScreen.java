@@ -7,6 +7,10 @@
 package novello.startup;
 
 import static com.xapp.application.utils.SwingUtils.*;
+import com.xapp.application.utils.SwingUtils;
+import com.xapp.marshalling.Marshaller;
+import com.xapp.utils.FileUtils;
+import com.xapp.utils.StringUtils;
 
 import javax.swing.*;
 import static javax.swing.Box.*;
@@ -14,10 +18,13 @@ import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.*;
+import java.io.File;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 
-import novello.AppData;
 import novello.startup.BookFile;
-import novello.NovelloTreeGraphics;
+import novello.*;
 
 public class StartupScreen
 {
@@ -36,16 +43,19 @@ public class StartupScreen
     private JButton m_quickLaunchOkbutton;
     private JComboBox m_recentlyOpenedCombo;
     private BookFile m_bookfile;
+    private JTextField m_saveLocationTF;
+    private JButton m_createFileButton;
+    private JButton m_saveFileOkButton;
+    private JDialog m_jd;
 
-    public StartupScreen(AppData appData, StartupCallback startupCallback)
+    public StartupScreen(final LauncherData launcherData)
     {
         super();
-        m_startupCallback = startupCallback;
 
         Box r1 = createLabelRow(20, "What would you like to do?", 400, "25", null);
         r1.setBorder(BorderFactory.createEtchedBorder());
 
-        m_recentlyOpenedCombo = createRecentlyOpenedCombo(appData);
+        m_recentlyOpenedCombo = createRecentlyOpenedCombo(launcherData);
         setComponentSize(150, 20, m_recentlyOpenedCombo);
         m_quickLaunchOkbutton = createButton("OK", 90,20);
 
@@ -98,11 +108,26 @@ public class StartupScreen
         m_localFileOkButton = createButton("OK", 90,20);
         Box r10 = createHorizBox(createHorizontalStrut(332), m_localFileOkButton, createHorizontalGlue());
 
+        Box r11 = createLabelRow(30, "Create a new book on your computer:", 400, "20", null);
+        m_saveLocationTF = createTF(150,20);
+        m_saveLocationTF.setEditable(false);
+        m_createFileButton = createButton("Create File...", 90,20);
+        Box r12 = createHorizBox(createHorizontalStrut(50),
+                createLabel("Location :", 120, null, 20),
+                m_saveLocationTF,
+                createHorizontalStrut(5), m_createFileButton,createHorizontalGlue());
+
+        m_saveFileOkButton = createButton("OK", 90,20);
+        Box r13 = createHorizBox(createHorizontalStrut(332), m_saveFileOkButton, createHorizontalGlue());
+
         Box bottom = createVertBox(r8, r9, createVerticalStrut(5), r10,createVerticalStrut(10));
+        Box lowerbottom = createVertBox(r11,r12,createVerticalStrut(5), r13,createVerticalStrut(10));
         bottom.setBorder(BorderFactory.createEtchedBorder());
+        lowerbottom.setBorder(BorderFactory.createEtchedBorder());
 
         m_mainBox = createHorizBox(createHorizontalStrut(5),
-                createVertBox(createVerticalStrut(5), r1,top,middle, bottom,createVerticalStrut(5)), createHorizontalStrut(5));
+                createVertBox(createVerticalStrut(5), r1,top,middle, bottom,lowerbottom,createVerticalStrut(5)), 
+                createHorizontalStrut(5));
 
         setFont(r2, "Tahoma-12");
         setFont(r4, "Tahoma-12");
@@ -111,6 +136,8 @@ public class StartupScreen
         setFont(r7, "Tahoma-12");
         setFont(r9, "Tahoma-12");
         setFont(r10, "Tahoma-12");
+        setFont(r12, "Tahoma-12");
+        setFont(r13, "Tahoma-12");
 
         updateViewState();
 
@@ -124,6 +151,19 @@ public class StartupScreen
                 if(r== JFileChooser.APPROVE_OPTION)
                 {
                     m_locationTF.setText(c.getSelectedFile().getAbsolutePath());
+                }
+            }
+        });
+        m_createFileButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                JFileChooser c = new JFileChooser(".");
+                setFont(c,"Tahoma-12");
+                int r = c.showSaveDialog(m_mainBox);
+                if(r== JFileChooser.APPROVE_OPTION)
+                {
+                    m_saveLocationTF.setText(c.getSelectedFile().getAbsolutePath());
                 }
             }
         });
@@ -157,6 +197,16 @@ public class StartupScreen
                 String svnLocation = m_svnLocationTF.getText();
                 String username = m_username.getText();
                 String password = m_password.getText();
+                String error = "";
+                error += StringUtils.isNullOrEmpty(checkoutFolder) ? "enter checkout folder\n" : "";
+                error += StringUtils.isNullOrEmpty(svnLocation) ? "enter svn location\n" : "";
+                error += StringUtils.isNullOrEmpty(username) ? "enter username\n" : "";
+                error += StringUtils.isNullOrEmpty(password) ? "enter password\n" : "";
+                if(!error.equals(""))
+                {
+                    SwingUtils.warnUser(m_mainBox, error);
+                    return;
+                }
                 m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
                 m_startupCallback.startNovello(m_bookfile);
             }
@@ -169,12 +219,80 @@ public class StartupScreen
                 m_startupCallback.startNovello(m_bookfile);
             }
         });
+        m_saveFileOkButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                String fileName = m_saveLocationTF.getText();
+                File f = new File(fileName);
+                if(!f.exists() || SwingUtils.askUser(m_mainBox, "Overwrite " + f.getName() + "?"))
+                {
+                    Book b = new Book();
+                    Section section = new Section();
+                    b.setSection(section);
+                    section.setName(f.getName().substring(0,f.getName().lastIndexOf(".")));
+                    new Marshaller<Book>(Book.class).marshal(f, b);
+                    m_bookfile = new BookFile(fileName);
+                    m_startupCallback.startNovello(m_bookfile);
+                }
+            }
+        });
+        m_checkURLButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                String text = m_svnLocationTF.getText();
+                if(text==null || text.equals(""))
+                {
+                    SwingUtils.warnUser(m_mainBox, "please enter a url");
+                    return;
+                }
+                InputStream is = null;
+                try
+                {
+                    is = FileUtils.openStream(text);
+                }
+                catch (RuntimeException e1)
+                {
+                    if(e1.getCause() instanceof MalformedURLException)
+                    {
+                        SwingUtils.warnUser(m_mainBox, "url is should look something like:\n http://www.foo.com/svn/boo/bar.xml");
+                        return;
+                    }
+                    else
+                    {
+                        throw e1;
+                    }
+                }
+                SwingUtils.warnUser(m_mainBox, is!=null ? "url seems ok" : "cannot access url");
+            }
+        });
     }
 
-    private JComboBox createRecentlyOpenedCombo(AppData appData)
+    public void setStartupCallback(StartupCallback startupCallback)
+    {
+        m_startupCallback = startupCallback;
+    }
+
+    private JComboBox createRecentlyOpenedCombo(LauncherData appData)
     {
         BookFile[] bookFiles = appData.getRecentlyOpened().toArray(new BookFile[appData.getRecentlyOpened().size()]);
         JComboBox combo = new JComboBox(bookFiles);
+        combo.setRenderer(new DefaultListCellRenderer()
+        {
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+            {
+                String text = null;
+                if (value!=null)
+                {
+                    BookFile bf = (BookFile) value;
+                    setToolTipText(bf.getLocation());
+                    String[] chunks = bf.getLocation().split("[/\\\\]");
+                    text = chunks[chunks.length - 1];
+                }
+                return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+            }
+        });
         combo.setSelectedItem(appData.getLastOpened());
         combo.addItemListener(new ItemListener()
         {
@@ -254,27 +372,33 @@ public class StartupScreen
         return l;
     }
 
-    public void openDialog()
+    public JDialog getDialog()
     {
-        JDialog jd = new JDialog((JFrame) null, "Novello", false);
-        jd.setContentPane(m_mainBox);
-        jd.pack();
-        jd.setLocationRelativeTo(null);
-        jd.setVisible(true);
+        if(m_jd ==null)
+        {
+            m_jd = new JDialog((JFrame) null, "Novello", false);
+            m_jd.setContentPane(m_mainBox);
+            m_jd.pack();
+            m_jd.setLocationRelativeTo(null);
+        }
+        return m_jd;
     }
 
     public static void main(String[] args)
     {
-        AppData ap = new AppData();
+        LauncherData ap = new LauncherData();
         ap.getRecentlyOpened().add(new BookFileSVN("http://boo", "folders/boo", "egg", "head"));
         ap.getRecentlyOpened().add(new BookFileSVN("http://foo", "folders/foo", "egg", "head"));
         ap.getRecentlyOpened().add(new BookFile("local/hussl.xml"));
-        new StartupScreen(ap, new StartupCallback()
+        StartupCallback callback = new StartupCallback()
         {
             public void startNovello(BookFile bookFile)
             {
                 System.out.println(bookFile);
             }
-        }).openDialog();
+        };
+        StartupScreen startupScreen = new StartupScreen(ap);
+        startupScreen.setStartupCallback(callback);
+        startupScreen.getDialog().setVisible(true);
     }
 }
