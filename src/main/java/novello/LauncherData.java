@@ -7,6 +7,7 @@
 package novello;
 
 import novello.startup.BookFile;
+import novello.startup.BookFileSVN;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class LauncherData
 {
     private List<BookFile> m_recentlyOpened = new ArrayList<BookFile>();
     private BookFile m_lastOpened;
-    private static String FILE;
+    private static File LAUNCHER_FILE = new File(NovelloLauncher.HOME_DIR, "launcher-data.xml");
 
     public List<BookFile> getRecentlyOpened()
     {
@@ -43,15 +44,16 @@ public class LauncherData
 
     public static LauncherData load()
     {
-        FILE = "launcher-data.xml";
-        File f = new File(FILE);
-        if(f.exists())
+        if(LAUNCHER_FILE.exists())
         {
-            return Unmarshaller.load(LauncherData.class, FILE);
+            return Unmarshaller.load(LauncherData.class, LAUNCHER_FILE.getAbsolutePath());
         }
         else
         {
-            return new LauncherData();
+            LauncherData data = new LauncherData();
+            BookFile b = new BookFileSVN("https://novello.svn.sourceforge.net/svnroot/novello/christmas-carol.xml", NovelloLauncher.HOME_DIR.getAbsolutePath(), "", "");
+            data.getRecentlyOpened().add(b);
+            return data;
         }
     }
 
@@ -65,6 +67,6 @@ public class LauncherData
 
     public static void save(LauncherData launcherData)
     {
-        new Marshaller<LauncherData>(LauncherData.class).marshal(FILE, launcherData);
+        new Marshaller<LauncherData>(LauncherData.class).marshal(LAUNCHER_FILE, launcherData);
     }
 }

@@ -145,7 +145,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(System.getProperty("user.dir"));
+                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);
                 if(r== JFileChooser.APPROVE_OPTION)
@@ -158,7 +158,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(".");
+                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
                 setFont(c,"Tahoma-12");
                 int r = c.showSaveDialog(m_mainBox);
                 if(r== JFileChooser.APPROVE_OPTION)
@@ -171,7 +171,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(System.getProperty("user.dir"));
+                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
                 c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);

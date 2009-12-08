@@ -15,13 +15,17 @@ import com.xapp.utils.SvnConfig;
 import com.xapp.utils.SVNKitFacade;
 import com.xapp.application.api.Launcher;
 
+import java.io.File;
+
 public class NovelloLauncher
 {
     public static SVNFacade SVN_FACADE;
+    public static File HOME_DIR = new File(System.getProperty("user.home", ".") + "/novello");
 
     public static void main(String[] args)
     {
-        System.out.println("hello david john webber");
+        HOME_DIR.mkdir();
+        System.out.println(HOME_DIR.getAbsolutePath());
         final LauncherData launcherData = LauncherData.load();
         final StartupScreen startupScreen = new StartupScreen(launcherData);
         StartupCallback callback = new StartupCallback()
@@ -29,7 +33,7 @@ public class NovelloLauncher
             public void startNovello(BookFile bookFile)
             {
                 startupScreen.getDialog().setVisible(false);
-                String filename;
+                String filename = null;
                 if (bookFile instanceof BookFileSVN)
                 {
                     BookFileSVN bookFileSVN = (BookFileSVN) bookFile;
@@ -40,9 +44,12 @@ public class NovelloLauncher
                     //trim off filename
                     String svnfolder = svnloc.substring(0,svnloc.lastIndexOf("/"));
                     String folder = bookFileSVN.getCheckoutFolder();
-                    SVN_FACADE.checkout(svnfolder , folder);
+                    //make a folder to check out to
+                    String leaffolderName = svnfolder.substring(svnfolder.lastIndexOf("/"));
+                    System.out.println(leaffolderName);
+                    /*SVN_FACADE.checkout(svnfolder , folder);
 
-                    filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));
+                    filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));*/
 
                 }
                 else
