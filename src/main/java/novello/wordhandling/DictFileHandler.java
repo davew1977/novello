@@ -18,18 +18,31 @@ import java.net.URISyntaxException;
 
 public class DictFileHandler
 {
-    public static Dictionary load(String zip)
+    public static Dictionary loadFromClasspath(String url)
     {
+        File f;
         try
         {
-            Dictionary dict = new Dictionary();
-            File f = new File(DictFileHandler.class.getResource(zip).toURI());
+            f = new File(DictFileHandler.class.getResource(url).toURI());
+        }
+        catch (URISyntaxException e)
+        {
+            throw new RuntimeException(e);
+        }
+        return load(f);
+    }
+
+    public static Dictionary load(File f)
+    {
+        Dictionary dict = new Dictionary();
+        try
+        {
             ZipFile z = new ZipFile(f);
             Enumeration<? extends ZipEntry> enumeration = z.entries();
             while (enumeration.hasMoreElements())
             {
-                ZipEntry entry =  enumeration.nextElement();
-                if(entry.getName().endsWith("txt"))
+                ZipEntry entry = enumeration.nextElement();
+                if (entry.getName().endsWith("txt"))
                 {
                     String words = FileUtils.readInputToString(z.getInputStream(entry));
                     dict.addWords(words.split("\n"));
@@ -41,21 +54,25 @@ public class DictFileHandler
         {
             throw new RuntimeException(e);
         }
-        catch (URISyntaxException e)
-        {
-            throw new RuntimeException(e);
-        }
     }
 
     public static void main(String[] args)
     {
-        Dictionary dictionary = DictFileHandler.load("/british.zip");
+        Dictionary dictionary = DictFileHandler.loadFromClasspath("/british.zip");
         List<String> words = dictionary.findWords("H");
         System.out.println("words = " + words);
     }
 
-    public static Dictionary loadBritish()
+    public static Dictionary loadDictionary(String language)
     {
-        return DictFileHandler.load("/british.zip");
+        //hardcode british english
+        File cache = new File("_NOVELLO_CACHE");
+        File f = new File(cache, "british.zip");
+        if (!f.exists())
+        {
+            cache.mkdirs();
+            FileUtils.downloadFile(f, "http://novello.sourceforge.net/webstart/dictionaries/british.zip");
+        }
+        return load(f);
     }
 }

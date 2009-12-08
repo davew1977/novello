@@ -21,6 +21,7 @@ public class NovelloLauncher
 
     public static void main(String[] args)
     {
+        System.out.println("hello david john webber");
         final LauncherData launcherData = LauncherData.load();
         final StartupScreen startupScreen = new StartupScreen(launcherData);
         StartupCallback callback = new StartupCallback()

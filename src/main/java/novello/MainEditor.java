@@ -6,19 +6,19 @@
  */
 package novello;
 
+import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.objectmodelling.tree.TreeNode;
+import novello.wordhandling.DictFileHandler;
+import novello.wordhandling.Dictionary;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.AdjustmentEvent;
-
-import novello.wordhandling.DictFileHandler;
+import java.awt.event.AdjustmentListener;
 
 public class MainEditor extends JSplitPane
 {
@@ -64,7 +64,14 @@ public class MainEditor extends JSplitPane
             }
         });
 
-        m_chunkEditor.setDict(DictFileHandler.loadBritish());
+        new Thread(new Runnable()
+        {
+            public void run()
+            {
+                Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
+                m_chunkEditor.setDict(dictionary);
+            }
+        }).start();
     }
 
     public void setChunk(TextChunk textChunk, Content parentContent)

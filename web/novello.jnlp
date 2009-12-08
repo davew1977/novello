@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="6.0+" codebase="http://novello.sourceforge.net/webstart/" href="novello.jnlp">
+
+    <information>
+        <title>Novello</title>
+        <vendor>dj-webber.com</vendor>
+        <homepage href="http://novello.sourceforge.net"/>
+        <description>Book writing software</description>
+    </information>
+
+    <security>
+        <all-permissions/>
+    </security>
+
+    <update check="always" policy="always"/>
+
+
+    <resources>
+        <j2se version="1.5+"/>
+        <jar href="novello.jar" main="true"/>
+        <jar href="xapp-1.0-SNAPSHOT.jar"/>
+        <jar href="svnkit-1.2.2-build5427.jar"/>
+        <!--jar href="svnkit-cli-1.2.2-build5427.jar"/-->
+
+        <property name="svn.mode" value="true"/>
+    </resources>
+
+    <application-desc main-class="novello.NovelloLauncher"/>
+</jnlp>

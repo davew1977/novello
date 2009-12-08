@@ -46,7 +46,7 @@ public class StartupScreen
     private JTextField m_saveLocationTF;
     private JButton m_createFileButton;
     private JButton m_saveFileOkButton;
-    private JDialog m_jd;
+    private JFrame m_jd;
 
     public StartupScreen(final LauncherData launcherData)
     {
@@ -145,7 +145,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(".");
+                JFileChooser c = new JFileChooser(System.getProperty("user.dir"));
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);
                 if(r== JFileChooser.APPROVE_OPTION)
@@ -171,7 +171,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(".");
+                JFileChooser c = new JFileChooser(System.getProperty("user.dir"));
                 c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);
@@ -372,11 +372,11 @@ public class StartupScreen
         return l;
     }
 
-    public JDialog getDialog()
+    public JFrame getDialog()
     {
         if(m_jd ==null)
         {
-            m_jd = new JDialog((JFrame) null, "Novello", false);
+            m_jd = new JFrame("Novello");
             m_jd.setContentPane(m_mainBox);
             m_jd.pack();
             m_jd.setLocationRelativeTo(null);
