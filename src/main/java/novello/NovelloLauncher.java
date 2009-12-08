@@ -46,10 +46,10 @@ public class NovelloLauncher
                     String folder = bookFileSVN.getCheckoutFolder();
                     //make a folder to check out to
                     String leaffolderName = svnfolder.substring(svnfolder.lastIndexOf("/"));
-                    System.out.println(leaffolderName);
-                    /*SVN_FACADE.checkout(svnfolder , folder);
+                    folder+=leaffolderName;
+                    SVN_FACADE.checkout(svnfolder , folder);
 
-                    filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));*/
+                    filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));
 
                 }
                 else

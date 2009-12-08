@@ -37,21 +37,4 @@ public class BookFile
     {
         return m_location;
     }
-
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (!(o instanceof BookFile)) return false;
-
-        BookFile bookFile = (BookFile) o;
-
-        if (m_location != null ? !m_location.equals(bookFile.m_location) : bookFile.m_location != null) return false;
-
-        return true;
-    }
-
-    public int hashCode()
-    {
-        return (m_location != null ? m_location.hashCode() : 0);
-    }
 }

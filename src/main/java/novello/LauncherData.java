@@ -51,7 +51,7 @@ public class LauncherData
         else
         {
             LauncherData data = new LauncherData();
-            BookFile b = new BookFileSVN("https://novello.svn.sourceforge.net/svnroot/novello/christmas-carol.xml", NovelloLauncher.HOME_DIR.getAbsolutePath(), "", "");
+            BookFile b = new BookFileSVN("https://novello.svn.sourceforge.net/svnroot/novello/books/christmas_carol/christmas-carol.xml", NovelloLauncher.HOME_DIR.getAbsolutePath(), "", "");
             data.getRecentlyOpened().add(b);
             return data;
         }
@@ -59,10 +59,19 @@ public class LauncherData
 
     public void addRecentlyOpened(BookFile bookfile)
     {
-        if(!m_recentlyOpened.contains(bookfile))
+        BookFile match = null;
+        for (BookFile ro : m_recentlyOpened)
         {
-            m_recentlyOpened.add(bookfile);
+            if(ro.getLocation().equals(bookfile.getLocation()))
+            {
+                match = ro;
+            }
         }
+        if(match!=null)
+        {
+            m_recentlyOpened.remove(match);
+        }
+        m_recentlyOpened.add(bookfile);
     }
 
     public static void save(LauncherData launcherData)
