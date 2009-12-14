@@ -13,11 +13,10 @@ import com.xapp.utils.FileUtils;
 import com.xapp.utils.StringUtils;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.event.PopupMenuEvent;
 import static javax.swing.Box.*;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
@@ -47,6 +46,8 @@ public class StartupScreen
     private JButton m_createFileButton;
     private JButton m_saveFileOkButton;
     private JFrame m_jd;
+    private StartupScreen.QuickLaunchAction m_quickLaunchAction = new QuickLaunchAction();
+    private StartupScreen.LaunchSVNAction m_launchSVNAction = new LaunchSVNAction();
 
     public StartupScreen(final LauncherData launcherData)
     {
@@ -85,6 +86,7 @@ public class StartupScreen
                 m_username,createHorizontalStrut(155),createHorizontalGlue());
 
         m_password = createTF(90,20, true);
+        m_password.setAction(m_launchSVNAction);
         m_openSVNBookButton = createButton("OK", 90,20);
         Box r7 = createHorizBox(createHorizontalStrut(50),
                 createLabel("SVN Password :", 120, null, 20),
@@ -181,36 +183,8 @@ public class StartupScreen
                 }
             }
         });
-        m_quickLaunchOkbutton.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                m_bookfile = (BookFile) m_recentlyOpenedCombo.getSelectedItem();
-                m_startupCallback.startNovello(m_bookfile);
-            }
-        });
-        m_openSVNBookButton.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                String checkoutFolder = m_checkoutLocation.getText();
-                String svnLocation = m_svnLocationTF.getText();
-                String username = m_username.getText();
-                String password = m_password.getText();
-                String error = "";
-                error += StringUtils.isNullOrEmpty(checkoutFolder) ? "enter checkout folder\n" : "";
-                error += StringUtils.isNullOrEmpty(svnLocation) ? "enter svn location\n" : "";
-                error += StringUtils.isNullOrEmpty(username) ? "enter username\n" : "";
-                error += StringUtils.isNullOrEmpty(password) ? "enter password\n" : "";
-                if(!error.equals(""))
-                {
-                    SwingUtils.warnUser(m_mainBox, error);
-                    return;
-                }
-                m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
-                m_startupCallback.startNovello(m_bookfile);
-            }
-        });
+        m_quickLaunchOkbutton.setAction(m_quickLaunchAction);
+        m_openSVNBookButton.setAction(m_launchSVNAction);
         m_localFileOkButton.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent e)
@@ -277,7 +251,7 @@ public class StartupScreen
     private JComboBox createRecentlyOpenedCombo(LauncherData appData)
     {
         BookFile[] bookFiles = appData.getRecentlyOpened().toArray(new BookFile[appData.getRecentlyOpened().size()]);
-        JComboBox combo = new JComboBox(bookFiles);
+        final JComboBox combo = new JComboBox(bookFiles);
         combo.setRenderer(new DefaultListCellRenderer()
         {
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
@@ -288,9 +262,19 @@ public class StartupScreen
                     BookFile bf = (BookFile) value;
                     setToolTipText(bf.getLocation());
                     String[] chunks = bf.getLocation().split("[/\\\\]");
-                    text = chunks[chunks.length - 1];
+                    text = chunks[chunks.length - 1] + (bf instanceof BookFileSVN ? " (svn)":"");
                 }
                 return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+            }
+        });
+        combo.addKeyListener(new KeyAdapter()
+        {
+            public void keyTyped(KeyEvent e)
+            {
+                if(e.getKeyChar()== KeyEvent.VK_ENTER && !combo.isPopupVisible())
+                {
+                    m_quickLaunchAction.actionPerformed(null);
+                }
             }
         });
         combo.setSelectedItem(appData.getLastOpened());
@@ -380,6 +364,7 @@ public class StartupScreen
             m_jd.setContentPane(m_mainBox);
             m_jd.pack();
             m_jd.setLocationRelativeTo(null);
+            m_jd.setIconImage(NovelloTreeGraphics.BOOK_ICON.getImage());
         }
         return m_jd;
     }
@@ -400,5 +385,54 @@ public class StartupScreen
         StartupScreen startupScreen = new StartupScreen(ap);
         startupScreen.setStartupCallback(callback);
         startupScreen.getDialog().setVisible(true);
+    }
+
+    private class QuickLaunchAction extends AbstractAction
+    {
+        public QuickLaunchAction()
+        {
+            super("OK");
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            m_bookfile = (BookFile) m_recentlyOpenedCombo.getSelectedItem();
+            if (m_bookfile!=null)
+            {
+                m_startupCallback.startNovello(m_bookfile);
+            }
+            else
+            {
+                SwingUtils.warnUser(m_mainBox, "No book selected");
+            }
+        }
+    }
+
+    private class LaunchSVNAction extends AbstractAction
+    {
+        private LaunchSVNAction()
+        {
+            super("OK");
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            String checkoutFolder = m_checkoutLocation.getText();
+            String svnLocation = m_svnLocationTF.getText();
+            String username = m_username.getText();
+            String password = m_password.getText();
+            String error = "";
+            error += StringUtils.isNullOrEmpty(checkoutFolder) ? "enter checkout folder\n" : "";
+            error += StringUtils.isNullOrEmpty(svnLocation) ? "enter svn location\n" : "";
+            error += StringUtils.isNullOrEmpty(username) ? "enter username\n" : "";
+            error += StringUtils.isNullOrEmpty(password) ? "enter password\n" : "";
+            if(!error.equals(""))
+            {
+                SwingUtils.warnUser(m_mainBox, error);
+                return;
+            }
+            m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
+            m_startupCallback.startNovello(m_bookfile);
+        }
     }
 }

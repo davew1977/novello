@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.File;
 import java.net.URISyntaxException;
 
+import novello.NovelloLauncher;
+
 public class DictFileHandler
 {
     public static Dictionary loadFromClasspath(String url)
@@ -66,7 +68,7 @@ public class DictFileHandler
     public static Dictionary loadDictionary(String language)
     {
         //hardcode british english
-        File cache = new File("_NOVELLO_CACHE");
+        File cache = new File(NovelloLauncher.HOME_DIR, "_NOVELLO_CACHE");
         File f = new File(cache, "british.zip");
         if (!f.exists())
         {

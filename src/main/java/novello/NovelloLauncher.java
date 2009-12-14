@@ -10,17 +10,39 @@ import novello.startup.StartupScreen;
 import novello.startup.StartupCallback;
 import novello.startup.BookFile;
 import novello.startup.BookFileSVN;
-import com.xapp.utils.SVNFacade;
-import com.xapp.utils.SvnConfig;
-import com.xapp.utils.SVNKitFacade;
-import com.xapp.application.api.Launcher;
+import com.xapp.utils.svn.SVNFacade;
+import com.xapp.utils.svn.SVNKitFacade;
+import com.xapp.application.utils.SwingUtils;
 
+import javax.swing.*;
 import java.io.File;
+import java.awt.*;
 
 public class NovelloLauncher
 {
     public static SVNFacade SVN_FACADE;
-    public static File HOME_DIR = new File(System.getProperty("user.home", ".") + "/novello");
+    public static File HOME_DIR = new File(getHomeDir() + "/novello");
+
+    static
+    {
+        SwingUtils.DEFAULT_FRAME_ICON = NovelloTreeGraphics.BOOK_ICON;
+        SwingUtils.DEFAULT_FONT = Font.decode("Tahoma-11");
+    }
+
+    private static String getHomeDir()
+    {
+        boolean override = Boolean.getBoolean("home.dir.override");
+
+        if(override)
+        {
+            Object[] items = new Object[]{"C:\\dev\\novello_test\\david","C:\\dev\\novello_test\\bob"};
+            JComboBox jcombo = new JComboBox(items);
+            JOptionPane.showMessageDialog(null,jcombo);
+
+            return (String) jcombo.getSelectedItem();
+        }
+        return System.getProperty("user.home", ".");
+    }
 
     public static void main(String[] args)
     {
@@ -32,32 +54,44 @@ public class NovelloLauncher
         {
             public void startNovello(BookFile bookFile)
             {
-                startupScreen.getDialog().setVisible(false);
                 String filename = null;
                 if (bookFile instanceof BookFileSVN)
                 {
-                    BookFileSVN bookFileSVN = (BookFileSVN) bookFile;
+                    final BookFileSVN bookFileSVN = (BookFileSVN) bookFile;
                     String username = bookFileSVN.getSvnUsername();
                     String password = bookFileSVN.getSvnPassword();
                     SVN_FACADE = new SVNKitFacade(username, password);
-                    String svnloc = bookFileSVN.getLocation();
-                    //trim off filename
-                    String svnfolder = svnloc.substring(0,svnloc.lastIndexOf("/"));
-                    String folder = bookFileSVN.getCheckoutFolder();
-                    //make a folder to check out to
-                    String leaffolderName = svnfolder.substring(svnfolder.lastIndexOf("/"));
-                    folder+=leaffolderName;
-                    SVN_FACADE.checkout(svnfolder , folder);
-
-                    filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));
+                    JProgressBar prog = new JProgressBar(0,100);
+                    prog.setIndeterminate(true);
+                    final JFrame jFrame = SwingUtils.showInFrame(prog);
+                    jFrame.setLocationRelativeTo(startupScreen.getDialog());
+                    new Thread(new Runnable()
+                    {
+                        public void run()
+                        {
+                            String svnloc = bookFileSVN.getLocation();
+                            //trim off filename
+                            String svnfolder = svnloc.substring(0, svnloc.lastIndexOf("/"));
+                            String folder = bookFileSVN.getCheckoutFolder();
+                            //make a folder to check out to
+                            String leaffolderName = svnfolder.substring(svnfolder.lastIndexOf("/"));
+                            folder += leaffolderName;
+                            SVN_FACADE.checkout(svnfolder, folder);
+                            String filename = folder + "/" + svnloc.substring(svnloc.lastIndexOf("/"));
+                            startupScreen.getDialog().setVisible(false);
+                            jFrame.setVisible(false);
+                            Main.launch(SVN_FACADE, filename);
+                        }
+                    }).start();
 
                 }
                 else
                 {
                     System.out.println("here");
                     filename = bookFile.getLocation();
+                    startupScreen.getDialog().setVisible(false);
+                    Main.launch(null, filename);
                 }
-                Main.main(new String[]{filename});
 
 
                 launcherData.addRecentlyOpened(bookFile);

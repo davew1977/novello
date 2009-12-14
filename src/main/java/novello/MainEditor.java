@@ -25,7 +25,7 @@ public class MainEditor extends JSplitPane
     private NovelloApp m_novelloApp;
     private BrowserView m_browserView;
     private ChunkEditor m_chunkEditor;
-    private TextChunk m_chunk;
+    private TextChunk m_chunk = new TextChunk();
     private Content m_parentContent;
 
     public MainEditor(NovelloApp novelloApp)
@@ -44,7 +44,8 @@ public class MainEditor extends JSplitPane
         add(jsp2);
 
 
-        m_chunkEditor.getTextEditor().addAction("control S", new SaveAction());
+        m_chunkEditor.getTextEditor().addAction("control S", new SaveAction(this, novelloApp));
+        m_chunkEditor.getTextEditor().addAction("control Q", new QuitAction());
         m_chunkEditor.getTextEditor().addAction("control SPACE", new PopUpMenuAction());
         m_chunkEditor.getTextEditor().addAction("alt RIGHT", new StepAction(StepType.next));
         m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(StepType.previous));
@@ -83,7 +84,7 @@ public class MainEditor extends JSplitPane
         m_chunkEditor.setValue(textChunk.getText(), null);
     }
 
-    private void render()
+    public void render()
     {
         HTML html = new HTMLImpl();
         updateWordCount();
@@ -100,7 +101,7 @@ public class MainEditor extends JSplitPane
         }
     }
 
-    private void store()
+    public void store()
     {
         if (m_chunk != null)
         {
@@ -111,17 +112,6 @@ public class MainEditor extends JSplitPane
                 m_chunk = null;
                 m_novelloApp.doSplit(chunk);
             }
-        }
-    }
-
-
-    private class SaveAction extends AbstractAction
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            store();
-            render();
-            m_novelloApp.getAppContainer().save();
         }
     }
 
@@ -193,6 +183,14 @@ public class MainEditor extends JSplitPane
         public void actionPerformed(ActionEvent e)
         {
             m_novelloApp.getAppContainer().expand(m_novelloApp.getBook().step(m_type, m_parentContent));
+        }
+    }
+
+    private class QuitAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            m_novelloApp.getAppContainer().quit();
         }
     }
 }
