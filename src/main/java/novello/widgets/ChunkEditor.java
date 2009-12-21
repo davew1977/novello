@@ -5,11 +5,10 @@
  * Author: davidw
  *
  */
-package novello;
+package novello.widgets;
 
 import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.editor.widgets.AbstractPropertyWidget;
-import com.xapp.application.api.WidgetContext;
 import com.xapp.application.utils.SwingUtils;
 
 import javax.swing.*;
@@ -19,11 +18,12 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import novello.wordhandling.Dictionary;
+import novello.wordhandling.ThesaurusService;
+import novello.wordhandling.DictFileHandler;
 import novello.undo.*;
+import novello.TextChunk;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
@@ -32,11 +32,11 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
     private Dictionary m_dict;
+    private ThesaurusService m_thesaurus = new ThesaurusService();
     private UndoManager m_undoManager = new UndoManager();
 
-
     Pattern html = Pattern.compile("<[\\w\\W&&[^>]]*>");
-    Pattern speech = Pattern.compile("[\"“].*?[\"”]");
+    Pattern speech = Pattern.compile("[\"\u201c].*?[\"\u201d]");
     Pattern comment = Pattern.compile("<!--.*?-->");
     Pattern wholeLine = Pattern.compile(".*");
     private UndoAction m_undoAction = new UndoAction();
@@ -45,22 +45,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public void setDict(Dictionary dict)
     {
         m_dict = dict;
-    }
-
-    public String validate()
-    {
-        String[] lines = m_textEditor.getText().split("\n");
-        for (int i = 0; i < lines.length; i++)
-        {
-            //TODO
-        }
-        return null;
-    }
-
-    @Override
-    public void init(WidgetContext<String> context)
-    {
-        super.init(context);
     }
 
     public void setEditable(boolean editable)
@@ -142,7 +126,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.addLiveTemplate("td", "<td>$END$</td>");
             m_textEditor.addLiveTemplate("p", "<pre>$END$</pre>");
             m_textEditor.addLiveTemplate("c", "<!--$END$-->");
-            m_textEditor.addLiveTemplate("s", "“$END$”");
+            m_textEditor.addLiveTemplate("s", "\u201c$END$\u201d");
 
             m_textEditor.addAction("control W", new AbstractAction()
             {
@@ -154,6 +138,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             });
 
             m_textEditor.addAction("control shift SPACE", new WordCompleteAction());
+            m_textEditor.addAction("control T", new ThesaurusAction());
             m_textEditor.addAction("control Z", m_undoAction);
             m_textEditor.addAction("control shift Z", m_redoAction);
         }
@@ -197,34 +182,35 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     {
         public void actionPerformed(ActionEvent e)
         {
-            JPopupMenu popup = m_textEditor.newPopUp();
-            String wordToCaret = m_textEditor.getCurrentLine().wordToCaret();
+            final TextEditor.Line line = m_textEditor.getCurrentLine();
+            final String wordToCaret = line.wordToCaret();
             List<String> words = m_dict.findWords(wordToCaret);
-            for (String word : words)
+            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
+            if (!words.isEmpty())
             {
-                m_textEditor.addInsertAction(word, word, wordToCaret.length());
-            }
-            m_textEditor.showPopUp();
-            popup.addKeyListener(new KeyAdapter()
-            {
-                public void keyTyped(KeyEvent e)
+                new ComboChooser<String>(p.x-2, p.y-2,m_textEditor, words, wordToCaret, new ComboChooserClient<String>()
                 {
-                    System.out.println("hello");
-                    char aChar = e.getKeyChar();
-                    if (Character.isLetter(aChar))
+                    public void itemChosen(String item)
                     {
-                        new WordCompleteAction().actionPerformed(null);
+                        m_textEditor.replaceWordAtCaret(line, item);
                     }
-                }
-            });
+
+                    public List<String> filterValues(String updatedText)
+                    {
+                        return m_dict.findWords(updatedText);
+                    }
+                });
+            }
         }
     }
 
     public static void main(String[] args)
     {
+        Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
         TextChunk chunk = new TextChunk();
         chunk.setText("this is a text chunk\nthis is another line");
         ChunkEditor chunkEditor = new ChunkEditor();
+        chunkEditor.setDict(dictionary);
         chunkEditor.setValue(chunk.getText(), chunk);
         SwingUtils.showInFrame(chunkEditor.getComponent());
     }
@@ -257,6 +243,34 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 update.redo(m_textEditor);
             }
             m_undoManager.enable();
+        }
+    }
+
+    private class ThesaurusAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            final TextEditor.Line line = m_textEditor.getCurrentLine();
+            String word = line.wordAtCaret();
+            final String wordToCaret = line.wordToCaret();
+            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
+            List<String> options = m_thesaurus.suggest(word);
+            if(!options.isEmpty())
+            {
+
+                new ComboChooser<String>(p.x-2, p.y-2,m_textEditor, options, wordToCaret, new ComboChooserClient<String>()
+                {
+                    public void itemChosen(String item)
+                    {
+                        m_textEditor.replaceWordAtCaret(line, item);
+                    }
+
+                    public List<String> filterValues(String updatedText)
+                    {
+                        return null;
+                    }
+                });
+            }
         }
     }
 }

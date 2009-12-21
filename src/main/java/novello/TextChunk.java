@@ -9,15 +9,15 @@ package novello;
 
 import com.xapp.application.annotations.Mandatory;
 import com.xapp.application.annotations.EditorWidget;
-import com.xapp.application.editor.widgets.FreeTextPropertyWidget;
 import com.xapp.marshalling.annotations.FormattedText;
+import novello.widgets.ChunkEditor;
 
 public class TextChunk
 {
     private String m_text = "";
 
     @FormattedText
-    @EditorWidget(value=ChunkEditor.class)
+    @EditorWidget(value= ChunkEditor.class)
     @Mandatory
     public String getText()
     {
@@ -34,5 +34,14 @@ public class TextChunk
     {
         String s = m_text.split("\n")[0];
         return s.substring(0,Math.min(20,s.length()));
+    }
+
+    public static void main(String[] args)
+    {
+        char c = '“';
+        System.out.println(c);
+        System.out.println(Integer.toHexString(c));
+        System.out.println(Integer.toHexString('”'));
+        System.out.println(Integer.toHexString('a'));
     }
 }

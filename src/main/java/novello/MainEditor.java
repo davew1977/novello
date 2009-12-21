@@ -13,12 +13,16 @@ import com.xapp.application.utils.html.HTMLImpl;
 import com.xapp.objectmodelling.tree.TreeNode;
 import novello.wordhandling.DictFileHandler;
 import novello.wordhandling.Dictionary;
+import novello.widgets.ChunkEditor;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.util.regex.Pattern;
 
 public class MainEditor extends JSplitPane
 {
@@ -27,6 +31,7 @@ public class MainEditor extends JSplitPane
     private ChunkEditor m_chunkEditor;
     private TextChunk m_chunk = new TextChunk();
     private Content m_parentContent;
+    private Pattern WORD_COUNT_PATTERN = Pattern.compile("\\s+");
 
     public MainEditor(NovelloApp novelloApp)
     {
@@ -73,6 +78,25 @@ public class MainEditor extends JSplitPane
                 m_chunkEditor.setDict(dictionary);
             }
         }).start();
+
+        //word count updater
+        m_chunkEditor.getTextEditor().getDoc().addDocumentListener(new DocumentListener()
+        {
+            public void insertUpdate(DocumentEvent e)
+            {
+                updateWordCount();
+            }
+
+            public void removeUpdate(DocumentEvent e)
+            {
+                updateWordCount();
+            }
+
+            public void changedUpdate(DocumentEvent e)
+            {
+
+            }
+        });
     }
 
     public void setChunk(TextChunk textChunk, Content parentContent)
@@ -82,12 +106,12 @@ public class MainEditor extends JSplitPane
         m_parentContent = parentContent;
         render();
         m_chunkEditor.setValue(textChunk.getText(), null);
+        updateWordCount();
     }
 
     public void render()
     {
         HTML html = new HTMLImpl();
-        updateWordCount();
         html.p(m_chunk.getText());
         m_browserView.setHTML(html);
     }
@@ -96,7 +120,8 @@ public class MainEditor extends JSplitPane
     {
         if (m_chunk!=null)
         {
-            int count = m_chunk.getText().split("\\s+").length;
+            String text = m_chunkEditor.getTextEditor().getText();
+            int count = WORD_COUNT_PATTERN.split(text).length;
             m_novelloApp.getAppContainer().setStatusMessage("word count: " + count);
         }
     }

@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import novello.about.AboutPane;
+import novello.help.AboutPane;
+import novello.help.ReferenceCard;
 import org.tmatesoft.svn.core.SVNException;
 
 public class NovelloApp extends SimpleApplication<Book> implements BrowserViewListener
@@ -101,7 +102,19 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
                 f.setVisible(true);
             }
         });
+        JMenuItem referenceCard = new JMenuItem(new AbstractAction("Reference Card")
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                JFrame f = SwingUtils.createFrame(new ReferenceCard().wrapInScrollPane());
+                f.setAlwaysOnTop(true);
+                f.setTitle("Reference Card");
+                f.setLocationRelativeTo(m_appContainer.getMainFrame());
+                f.setVisible(true);
+            }
+        });
         help.add(about);
+        help.add(referenceCard);
         SwingUtils.setFont(help);
         m_appContainer.getMenuBar().add(help);
 

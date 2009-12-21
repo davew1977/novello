@@ -121,5 +121,5 @@
         </scp>
     </target>
 
-    <target name="deploy" depends="all, scp" description="Does everything, resolve, signing, scp..."/>
+    <target name="deploy" depends="t_compile,t_jar, scp" description="Does everything, resolve, signing, scp..."/>
 </project>

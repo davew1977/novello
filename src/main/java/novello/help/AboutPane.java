@@ -4,7 +4,7 @@
  * Author: davidw
  *
  */
-package novello.about;
+package novello.help;
 
 import com.xapp.application.utils.SwingUtils;
 import com.xapp.application.utils.html.HTML;
