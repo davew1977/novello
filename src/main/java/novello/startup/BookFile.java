@@ -8,6 +8,7 @@ package novello.startup;
 
 import novello.FileType;
 import com.xapp.objectmodelling.annotations.ValidImplementations;
+import com.xapp.objectmodelling.annotations.PrimaryKey;
 
 @ValidImplementations({BookFileSVN.class})
 public class BookFile
@@ -23,6 +24,7 @@ public class BookFile
     {
     }
 
+    @PrimaryKey
     public String getLocation()
     {
         return m_location;

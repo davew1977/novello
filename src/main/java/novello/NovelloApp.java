@@ -28,9 +28,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import novello.help.AboutPane;
 import novello.help.ReferenceCard;
+import novello.wordhandling.DictionaryType;
 import org.tmatesoft.svn.core.SVNException;
 
 public class NovelloApp extends SimpleApplication<Book> implements BrowserViewListener
@@ -44,6 +47,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     private CommitAction m_commitAction = new CommitAction();
     private RevertAction m_revertAction = new RevertAction();
     private SVNFacade m_svnFacade;
+    private Executor m_extraThread = Executors.newFixedThreadPool(1);
 
     public NovelloApp(SVNFacade svnFacade)
     {
@@ -57,67 +61,21 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         m_browserView = new BrowserView(this);
         m_browserView.setPreferredSize(new Dimension(600, m_browserView.getPreferredSize().height));
         m_classDatabase = m_appContainer.getGuiContext().getClassDatabase();
-        //m_browserView.setHTML(render(applicationContainer.getGuiContext().getInstance()));
         m_mainEditor = new MainEditor(this);
         m_appContainer.setUserPanel(m_mainEditor, false);
         m_mainEditor.setResizeWeight(0.5);
 
-        final File appDataFile = new File("app-data.xml");
-        if (appDataFile.exists())
-        {
-            try
-            {
-                m_appData = m_classDatabase.createUnmarshaller(AppData.class).unmarshal(appDataFile);
-            }
-            catch (Exception e)
-            {
-                System.out.println(e.getMessage());
-                m_appData = new AppData();
-            }
-        }
-        else
-        {
-            m_appData = new AppData();
-        }
-
-        m_appContainer.addAfterHook(DefaultAction.SAVE, new ApplicationContainer.Hook()
-        {
-            public void execute()
-            {
-                m_classDatabase.createMarshaller(AppData.class).marshal(appDataFile, m_appData);
-            }
-        });
+        initAppData();
 
         selectLastEditedContent();
 
-        JMenu help = new JMenu("Help");
-        JMenuItem about = new JMenuItem(new AbstractAction("About")
-        {
+        createHelpMenu();
 
-            public void actionPerformed(ActionEvent e)
-            {
-                JFrame f = SwingUtils.createFrame(new AboutPane());
-                f.setTitle("About");
-                f.setLocationRelativeTo(m_appContainer.getMainFrame());
-                f.setVisible(true);
-            }
-        });
-        JMenuItem referenceCard = new JMenuItem(new AbstractAction("Reference Card")
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                JFrame f = SwingUtils.createFrame(new ReferenceCard().wrapInScrollPane());
-                f.setAlwaysOnTop(true);
-                f.setTitle("Reference Card");
-                f.setLocationRelativeTo(m_appContainer.getMainFrame());
-                f.setVisible(true);
-            }
-        });
-        help.add(about);
-        help.add(referenceCard);
-        SwingUtils.setFont(help);
-        m_appContainer.getMenuBar().add(help);
+        setupToolbar();
+    }
 
+    private void setupToolbar()
+    {
         m_saveAction = new SaveAction(m_mainEditor, this);
         m_appContainer.getToolBar().add(m_saveAction).setToolTipText("Save changes to disk");
         m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
@@ -136,6 +94,52 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         }
     }
 
+    private void createHelpMenu()
+    {
+        JMenu help = new JMenu("Help");
+        JMenuItem about = new JMenuItem(new AboutAction());
+        JMenuItem referenceCard = new JMenuItem(new ReferenceCardAction());
+        help.add(about);
+        help.add(referenceCard);
+        SwingUtils.setFont(help);
+        m_appContainer.getMenuBar().add(help);
+    }
+
+    private void initAppData()
+    {
+        final File appDataFile = new File(m_appContainer.getGuiContext().getCurrentFile().getParentFile(), "app-data.xml");
+        if (appDataFile.exists())
+        {
+            try
+            {
+                m_appData = m_classDatabase.createUnmarshaller(AppData.class).unmarshal(appDataFile);
+                int div = m_appData.getDividerLocation();
+                if (div!=0)
+                {
+                    m_appContainer.setDividerLocation(div);
+                }
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.getMessage());
+                m_appData = new AppData();
+            }
+        }
+        else
+        {
+            m_appData = new AppData();
+        }
+
+        m_appContainer.addAfterHook(DefaultAction.SAVE, new ApplicationContainer.Hook()
+        {
+            public void execute()
+            {
+                m_appData.setDividerLocation(m_appContainer.getDividerLocation());
+                m_classDatabase.createMarshaller(AppData.class).marshal(appDataFile, m_appData);
+            }
+        });
+    }
+
     private void selectLastEditedContent()
     {
         Content lastEdited = m_appData.getLastEdited();
@@ -143,6 +147,17 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         {
             m_mainEditor.setChunk(lastEdited.latest(), lastEdited);
             m_appContainer.expand(lastEdited);
+        }
+        else
+        {
+            m_extraThread.execute(new Runnable()
+            {
+                public void run()
+                {
+                    m_browserView.setHTML(render(m_appContainer.getGuiContext().getInstance()));
+                    m_appContainer.setUserPanel(m_browserView);
+                }
+            });
         }
     }
 
@@ -184,22 +199,24 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     }
 
     @Override
-    public void nodeSelected(Node node)
+    public void nodeSelected(final Node node)
     {
-        HTML html = new HTMLImpl();
         //html.size(3).font("Dialog");
         if (node.wrappedObject() instanceof Content)
         {
             Content content = (Content) node.wrappedObject();
             m_mainEditor.setChunk(content.latest(), content);
             m_appData.setLastEdited(content);
+            m_appContainer.setUserPanel(m_mainEditor, false);
         }
-        if (node.wrappedObject() instanceof Section)
+        else if (node.wrappedObject() instanceof Section)
         {
+            HTML html = new HTMLImpl();
             Section section = (Section) node.wrappedObject();
             html.p("word count: " + section.wordcount());
             render(html, section, true);
             m_browserView.setHTML(html);
+            m_appContainer.setUserPanel(m_browserView);
         }
         else if (node.wrappedObject() instanceof TextChunk)
         {
@@ -208,6 +225,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
 
             Content content = (Content) node.getParent().wrappedObject();
             m_appData.setLastEdited(content);
+            m_appContainer.setUserPanel(m_mainEditor, false);
         }
 
     }
@@ -332,8 +350,11 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
                 List<TreeNode> treeNodeList = t.getChildren();
                 for (TreeNode node : treeNodeList)
                 {
-                    Content c = (Content) node;
-                    html.p(c.getLatestText());
+                    if (node instanceof Content)
+                    {
+                        Content c = (Content) node;
+                        html.p(c.getLatestText());
+                    }
                 }
 
             }
@@ -381,6 +402,18 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         return m_appContainer.getGuiContext().getInstance();
     }
 
+    public void addWordToDict(DictionaryType dictType, String word)
+    {
+        if(dictType== DictionaryType.local)
+        {
+            getBook().getLocalDictionary().add(word);
+        }
+        else
+        {
+            SwingUtils.warnUser(getAppContainer().getMainFrame(), "Feature not implemented yet!");
+        }
+    }
+
     private class EditLatestCommand extends NodeCommand
     {
         protected EditLatestCommand()
@@ -405,7 +438,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
 
         public void actionPerformed(ActionEvent e)
         {
-            if(SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to send your changes to the server?"))
+            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to send your changes to the server?"))
             {
                 commit();
             }
@@ -421,7 +454,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
 
         public void actionPerformed(ActionEvent e)
         {
-            if(SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
+            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
             {
                 m_svnFacade.revert(currentFilePath());
 
@@ -438,7 +471,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         if (lastEdited != null)
         {
             lastEdited = m_appContainer.getClassDatabase().getInstance(Content.class, lastEdited.getKey());
-            if(lastEdited!=null)
+            if (lastEdited != null)
             {
                 m_appData.setLastEdited(lastEdited);
                 selectLastEditedContent();
@@ -457,9 +490,9 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         {
             m_saveAction.save();
             UpdateResult result = m_svnFacade.update(currentFilePath());
-            if(result.isConflict())
+            if (result.isConflict())
             {
-                SwingUtils.warnUser(m_appContainer.getMainFrame(),"You have a conflict. You should close Novello and fix it manually\n" +
+                SwingUtils.warnUser(m_appContainer.getMainFrame(), "You have a conflict. You should close Novello and fix it manually\n" +
                         "You can revert the file, but then you will lose your changes");
             }
             else
@@ -500,7 +533,7 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         }
         catch (RuntimeException e)
         {
-            if(e.getCause() instanceof SVNException)
+            if (e.getCause() instanceof SVNException)
             {
                 SVNException svnException = (SVNException) e.getCause();
                 SwingUtils.warnUser(m_appContainer.getMainFrame(), svnException.getMessage());
@@ -509,6 +542,39 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             {
                 throw e;
             }
+        }
+    }
+
+    private class AboutAction extends AbstractAction
+    {
+        public AboutAction()
+        {
+            super("About");
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            JFrame f = SwingUtils.createFrame(new AboutPane());
+            f.setTitle("About");
+            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setVisible(true);
+        }
+    }
+
+    private class ReferenceCardAction extends AbstractAction
+    {
+        public ReferenceCardAction()
+        {
+            super("Reference Card");
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            JFrame f = SwingUtils.createFrame(new ReferenceCard().wrapInScrollPane());
+            f.setAlwaysOnTop(true);
+            f.setTitle("Reference Card");
+            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setVisible(true);
         }
     }
 }

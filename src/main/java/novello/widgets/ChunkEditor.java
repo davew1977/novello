@@ -14,6 +14,7 @@ import com.xapp.application.utils.SwingUtils;
 import javax.swing.*;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.awt.*;
@@ -22,8 +23,10 @@ import java.awt.event.ActionEvent;
 import novello.wordhandling.Dictionary;
 import novello.wordhandling.ThesaurusService;
 import novello.wordhandling.DictFileHandler;
+import novello.wordhandling.DictionaryType;
 import novello.undo.*;
 import novello.TextChunk;
+import novello.NovelloApp;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
@@ -31,7 +34,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private TextEditor m_textEditor;
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
-    private Dictionary m_dict;
+    public Dictionary m_dict;
     private ThesaurusService m_thesaurus = new ThesaurusService();
     private UndoManager m_undoManager = new UndoManager();
 
@@ -39,12 +42,19 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     Pattern speech = Pattern.compile("[\"\u201c].*?[\"\u201d]");
     Pattern comment = Pattern.compile("<!--.*?-->");
     Pattern wholeLine = Pattern.compile(".*");
+    public Pattern WORD = Pattern.compile("[\\w'\u2019]*");
     private UndoAction m_undoAction = new UndoAction();
     private RedoAction m_redoAction = new RedoAction();
+    private NovelloApp m_novelloApp;
 
     public void setDict(Dictionary dict)
     {
         m_dict = dict;
+    }
+
+    public void setNovelloApp(NovelloApp novelloApp)
+    {
+        m_novelloApp = novelloApp;
     }
 
     public void setEditable(boolean editable)
@@ -105,6 +115,16 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
+                        matcher = WORD.matcher(line.m_text);
+                        while (matcher.find())
+                        {
+                            if (!m_dict.wordOk(matcher.group()))
+                            {
+                                int start = line.m_startIndex + matcher.start();
+                                int length = matcher.group().length();
+                                setForegroundColor(start, length, Color.RED);
+                            }
+                        }
                     }
                 }
 
@@ -147,7 +167,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     private void findMatch(TextEditor.Line line)
     {
-        Pattern[] patterns = new Pattern[]{comment, html, speech, wholeLine};
+        Pattern[] patterns = new Pattern[]{WORD, comment, html, speech, wholeLine};
         for (Pattern pattern : patterns)
         {
             Matcher matcher = pattern.matcher(line.m_text);
@@ -160,6 +180,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     int end = line.m_startIndex + matcher.end();
                     m_textEditor.setSelectionStart(start);
                     m_textEditor.setSelectionEnd(end);
+                    return;
                 }
             }
         }
@@ -178,17 +199,28 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         m_undoManager.enable();
     }
 
+    public void addPopupActions()
+    {
+        final TextEditor.Line line = m_textEditor.getCurrentLine();
+        final String word = line.wordAtCaret(WORD);
+        if (!m_dict.wordOk(word))
+        {
+            m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word, line));
+            //m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.global, word, line));
+        }
+    }
+
     private class WordCompleteAction extends AbstractAction
     {
         public void actionPerformed(ActionEvent e)
         {
             final TextEditor.Line line = m_textEditor.getCurrentLine();
             final String wordToCaret = line.wordToCaret();
-            List<String> words = m_dict.findWords(wordToCaret);
+            List<String> words = m_dict.findWords(wordToCaret, 25);
             Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
             if (!words.isEmpty())
             {
-                new ComboChooser<String>(p.x-2, p.y-2,m_textEditor, words, wordToCaret, new ComboChooserClient<String>()
+                new ComboChooser<String>(p.x - 2, p.y - 2, m_textEditor, words, wordToCaret, new MyComboChooserClient()
                 {
                     public void itemChosen(String item)
                     {
@@ -254,22 +286,62 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             String word = line.wordAtCaret();
             final String wordToCaret = line.wordToCaret();
             Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
-            List<String> options = m_thesaurus.suggest(word);
-            if(!options.isEmpty())
+            Collection<String> options = m_thesaurus.suggest(word);
+            if (!options.isEmpty())
             {
 
-                new ComboChooser<String>(p.x-2, p.y-2,m_textEditor, options, wordToCaret, new ComboChooserClient<String>()
+                new ComboChooser<String>(p.x - 2, p.y - 2, m_textEditor, options, wordToCaret, new MyComboChooserClient()
                 {
                     public void itemChosen(String item)
                     {
                         m_textEditor.replaceWordAtCaret(line, item);
                     }
-
-                    public List<String> filterValues(String updatedText)
-                    {
-                        return null;
-                    }
                 });
+            }
+        }
+    }
+
+    private class AddWordAction extends AbstractAction
+    {
+        private final String m_word;
+        private final TextEditor.Line m_line;
+        private DictionaryType m_dictType;
+
+        public AddWordAction(DictionaryType dictionaryType, String word, TextEditor.Line line)
+        {
+            super("add word to " + dictionaryType + " dictionary");
+            m_word = word;
+            m_line = line;
+            m_dictType = dictionaryType;
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            m_dict.addWord(m_word);
+            int caret = getTextEditor().getCaretPosition();
+            getTextEditor().setText(m_textEditor.getText());
+            getTextEditor().setCaretPosition(caret);
+            m_textEditor.handleNewText(-1, null, null, Arrays.asList(m_line));
+            m_novelloApp.addWordToDict(m_dictType, m_word);
+        }
+    }
+
+    private class MyComboChooserClient extends SimpleComboChooserClient<String>
+    {
+
+        public void selectionChanged(String item)
+        {
+            if (m_novelloApp != null)
+            {
+                m_novelloApp.getAppContainer().setStatusMessage(item);
+            }
+        }
+
+        public void comboRemoved()
+        {
+            if (m_novelloApp != null)
+            {
+                m_novelloApp.getAppContainer().setStatusMessage("");
             }
         }
     }

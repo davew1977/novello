@@ -95,6 +95,7 @@ public class NovelloLauncher
 
 
                 launcherData.addRecentlyOpened(bookFile);
+                launcherData.setLastOpened(bookFile);
                 LauncherData.save(launcherData);
             }
         };

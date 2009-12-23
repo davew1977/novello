@@ -10,15 +10,27 @@ package novello;
 import com.xapp.objectmodelling.annotations.TreeMeta;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class Book
 {
-    private Section m_section;
+    private Section m_section = new Section("workspace");
+    private List<String> m_localDictionary = new ArrayList<String>();
 
     @TreeMeta(leafTypes = {Section.class, Content.class})
     public Section getSection()
     {
         return m_section;
+    }
+
+    public List<String> getLocalDictionary()
+    {
+        return m_localDictionary;
+    }
+
+    public void setLocalDictionary(List<String> localDictionary)
+    {
+        m_localDictionary = localDictionary;
     }
 
     public void setSection(Section section)
@@ -59,4 +71,6 @@ public class Book
         }
         return type.equals(MainEditor.StepType.next) ? next : previous;
     }
+
+
 }

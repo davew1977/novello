@@ -18,4 +18,8 @@ public interface ComboChooserClient<T>
      * @return null if filtering is not required
      */
     List<T> filterValues(String updatedText);
+
+    void selectionChanged(T item);
+
+    void comboRemoved();
 }

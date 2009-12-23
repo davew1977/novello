@@ -22,6 +22,14 @@ public class Section extends Tree
     private String m_text;
     private boolean m_excluded;
 
+    public Section(String s)
+    {
+        setName(s);
+    }
+
+    public Section()
+    {
+    }
 
     @FormattedText
     @EditorWidget(FreeTextPropertyWidget.class)

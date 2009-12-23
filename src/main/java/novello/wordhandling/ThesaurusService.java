@@ -8,23 +8,20 @@ package novello.wordhandling;
 
 import com.xapp.utils.FileUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
 public class ThesaurusService
 {
     private static final String URL = "http://words.bighugelabs.com/api/2/4b28aa907abd03d83b0a877ddc2f903c/%s/";
 
-    private Map<String, List<String>> m_cache = new HashMap<String, List<String>>();
+    private Map<String, Collection<String>> m_cache = new HashMap<String, Collection<String>>();
 
-    public List<String> suggest(String word)
+    public Collection<String> suggest(String word)
     {
-        List<String> options = m_cache.get(word);
+        Collection<String> options = m_cache.get(word);
         if (options == null)
         {
-            options = new ArrayList<String>();
+            options = new LinkedHashSet<String>();
             m_cache.put(word, options);
             String result = FileUtils.downloadToString(String.format(URL, word));
             if (result!=null)

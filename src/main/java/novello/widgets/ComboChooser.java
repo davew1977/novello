@@ -15,6 +15,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 import java.util.Vector;
+import java.util.Collection;
 
 public class ComboChooser<T> extends JComboBox implements ItemListener
 {
@@ -23,13 +24,13 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
     private FocusListener m_focusAdaptor;
     private MyDocumentListener m_myDocumentListener;
 
-    public ComboChooser(int x, int y, final JComponent parent, List<T> initialValues, T initialValue, ComboChooserClient<T> listener)
+    public ComboChooser(int x, int y, final JComponent parent, Collection<T> initialValues, T initialValue, ComboChooserClient<T> listener)
     {
         m_listener = listener;
         m_parent = parent;
         setEditor(new MyComboBoxEditor(getEditor()));
         SwingUtils.setFont(this, parent.getFont());
-        setBounds(x, y, 100, 20);
+        setBounds(x, y, 120, 20);
         parent.add(this);
         requestFocus();
         addItemListener(this);
@@ -66,7 +67,7 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
         }).start();
     }
 
-    private void setModel(List<T> initialValues)
+    private void setModel(Collection<T> initialValues)
     {
         setModel(new DefaultComboBoxModel(new Vector<Object>(initialValues)));
     }
@@ -78,12 +79,14 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
         m_parent.revalidate();
         m_parent.repaint();
         m_parent.requestFocus();
+        m_listener.comboRemoved();
     }
 
     public void itemStateChanged(ItemEvent e)
     {
         if (e.getStateChange() == ItemEvent.SELECTED)
         {
+            m_listener.selectionChanged((T) e.getItem());
         }
     }
 

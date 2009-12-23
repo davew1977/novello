@@ -15,6 +15,7 @@ import java.io.File;
 
 import com.xapp.marshalling.Unmarshaller;
 import com.xapp.marshalling.Marshaller;
+import com.xapp.objectmodelling.annotations.Reference;
 
 public class LauncherData
 {
@@ -32,6 +33,7 @@ public class LauncherData
         m_recentlyOpened = recentlyOpened;
     }
 
+    @Reference
     public BookFile getLastOpened()
     {
         return m_lastOpened;

@@ -10,7 +10,6 @@ import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.objectmodelling.tree.TreeNode;
 import novello.wordhandling.DictFileHandler;
 import novello.wordhandling.Dictionary;
 import novello.widgets.ChunkEditor;
@@ -23,12 +22,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class MainEditor extends JSplitPane
 {
-    private NovelloApp m_novelloApp;
+    NovelloApp m_novelloApp;
     private BrowserView m_browserView;
-    private ChunkEditor m_chunkEditor;
+    ChunkEditor m_chunkEditor;
     private TextChunk m_chunk = new TextChunk();
     private Content m_parentContent;
     private Pattern WORD_COUNT_PATTERN = Pattern.compile("\\s+");
@@ -39,6 +39,7 @@ public class MainEditor extends JSplitPane
         m_novelloApp = novelloApp;
         m_browserView = new BrowserView();
         m_chunkEditor = new ChunkEditor();
+        m_chunkEditor.setNovelloApp(m_novelloApp);
 
         final JScrollPane jsp = new JScrollPane(m_browserView);
         jsp.setPreferredSize(new Dimension(300, 400));
@@ -54,6 +55,7 @@ public class MainEditor extends JSplitPane
         m_chunkEditor.getTextEditor().addAction("control SPACE", new PopUpMenuAction());
         m_chunkEditor.getTextEditor().addAction("alt RIGHT", new StepAction(StepType.next));
         m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(StepType.previous));
+        m_chunkEditor.getTextEditor().addAction("F2", new FindError(StepType.next));
 
         jsp.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener()
         {
@@ -70,14 +72,9 @@ public class MainEditor extends JSplitPane
             }
         });
 
-        new Thread(new Runnable()
-        {
-            public void run()
-            {
-                Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
-                m_chunkEditor.setDict(dictionary);
-            }
-        }).start();
+        Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
+        dictionary.addWords(m_novelloApp.getBook().getLocalDictionary());
+        m_chunkEditor.setDict(dictionary);
 
         //word count updater
         m_chunkEditor.getTextEditor().getDoc().addDocumentListener(new DocumentListener()
@@ -147,46 +144,11 @@ public class MainEditor extends JSplitPane
         {
             TextEditor textEditor = m_chunkEditor.getTextEditor();
             textEditor.newPopUp();
-            textEditor.addPopUpAction(new GotoAction(m_novelloApp.getBook().getSection(), "goto"));
+            textEditor.addPopUpAction(new GotoAction(MainEditor.this, m_novelloApp.getBook().getSection(), "goto"));
             textEditor.addInsertAction("make split", "-->split");
+            m_chunkEditor.addPopupActions();
+
             textEditor.showPopUp();
-        }
-    }
-
-    private class GotoAction extends AbstractAction
-    {
-        Object m_subject;
-
-        public GotoAction(Section section, String name)
-        {
-            super(name);
-            m_subject = section;
-        }
-
-        public void actionPerformed(ActionEvent e)
-        {
-            if (m_subject instanceof Section)
-            {
-                Section section = (Section) m_subject;
-
-                TextEditor textEditor = m_chunkEditor.getTextEditor();
-                textEditor.newPopUp();
-
-                if(section instanceof Content)
-                {
-                    Content content = (Content) section;
-                    m_novelloApp.getAppContainer().expand(content);
-                }
-                else
-                {
-                    java.util.List<TreeNode> children = section.getChildren();
-                    for (TreeNode child : children)
-                    {
-                        textEditor.addPopUpAction(new GotoAction((Section) child, child.getName()));
-                    }
-                    textEditor.showPopUp();
-                }
-            }
         }
     }
 
@@ -208,6 +170,61 @@ public class MainEditor extends JSplitPane
         public void actionPerformed(ActionEvent e)
         {
             m_novelloApp.getAppContainer().expand(m_novelloApp.getBook().step(m_type, m_parentContent));
+            m_chunkEditor.getTextEditor().requestFocus();
+        }
+    }
+
+    private class FindError extends AbstractAction
+    {
+        private StepType m_type;
+
+        private FindError(StepType type)
+        {
+            super(type.toString());
+            m_type = type;
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            store();
+            TextChunk startChunk = m_chunk;
+            TextChunk currentChunk = m_chunk;
+            Content currentContent = m_parentContent;
+            boolean found = false;
+            boolean stop = false;
+            int cursor= m_chunkEditor.getTextEditor().getCaretPosition();
+            while(!found && !stop)
+            {
+                System.out.println(currentChunk);
+                Matcher m = m_chunkEditor.WORD.matcher(currentChunk.getText());
+                while(m.find())
+                {
+                    if(m.end()>cursor && !m_chunkEditor.m_dict.wordOk(m.group()))
+                    {
+                        if(currentChunk!=startChunk)
+                        {
+                            m_novelloApp.getAppContainer().expand(currentChunk);
+                        }
+                        m_chunkEditor.getTextEditor().requestFocus();
+                        m_chunkEditor.getTextEditor().setCaretPosition(m.start());
+                        m_chunkEditor.getTextEditor().setSelectionStart(m.start());
+                        m_chunkEditor.getTextEditor().setSelectionEnd(m.end());
+                        found=true;
+                        break;
+                    }
+                }
+                if(!found)
+                {
+                    currentContent = m_novelloApp.getBook().step(m_type, currentContent);
+                    currentChunk = currentContent.latest();
+                    cursor = 0;
+                }
+                if(startChunk==currentChunk)
+                {
+                    stop=true;
+                }
+            }
+
         }
     }
 

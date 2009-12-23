@@ -9,14 +9,19 @@ package novello.wordhandling;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Dictionary
 {
     private DictionaryNode m_dict;
+    private HashSet<String> m_words;
 
     public Dictionary()
     {
         m_dict = new DictionaryNode(null);
+        m_words = new HashSet<String>();
+        m_words.add("a");
+        m_words.add("i");
     }
 
 
@@ -29,6 +34,8 @@ public class Dictionary
     }
     public void addWord(String word)
     {
+        word = word.replace('\u2019', '\'');
+        m_words.add(word.toLowerCase());
         DictionaryNode dict = m_dict;
         for (int i = 0; i < word.length(); i++)
         {
@@ -69,6 +76,13 @@ public class Dictionary
         }
     }
 
+    public boolean wordOk(String word)
+    {
+        word = word.toLowerCase();
+        word = word.replace('\u2019', '\'');
+        return m_words.contains(word.toLowerCase());
+    }
+
     public List<String> findWords(String s)
     {
         return findWords(s, 10);
@@ -78,5 +92,13 @@ public class Dictionary
         List<String> matches = new ArrayList<String>();
         m_dict.findWords(s, matches, max);
         return matches;
+    }
+
+    public void addWords(List<String> words)
+    {
+        for (String word : words)
+        {
+            addWord(word);
+        }
     }
 }

@@ -17,6 +17,7 @@ import novello.startup.BookFile;
 public class AppData
 {
     private Content m_lastEdited;
+    private int m_dividerLocation;
 
     @Reference
     public Content getLastEdited()
@@ -27,5 +28,15 @@ public class AppData
     public void setLastEdited(Content lastEdited)
     {
         m_lastEdited = lastEdited;
+    }
+
+    public void setDividerLocation(int dividerLocation)
+    {
+        m_dividerLocation = dividerLocation;
+    }
+
+    public int getDividerLocation()
+    {
+        return m_dividerLocation;
     }
 }
