@@ -44,7 +44,23 @@ public class Book
         return "Book";
     }
 
-    public Content step(MainEditor.StepType type, Content thisContent)
+    /**
+     * steps and loops. If end is reached, it will return the first and vica versa
+     * @param type
+     * @param thisContent
+     * @return
+     */
+    public Content stepCircular(Direction type, Content thisContent)
+    {
+        Content content = step(type, thisContent);
+        if(content==null)
+        {
+            List<Content> contents = m_section.enumerate(Content.class);
+            return type == Direction.forward ? contents.get(0) : contents.get(contents.size()-1);
+        }
+        return content;
+    }
+    public Content step(Direction type, Content thisContent)
     {
         Content previous = null;
         Content next = null;
@@ -69,7 +85,7 @@ public class Book
                 }
             }
         }
-        return type.equals(MainEditor.StepType.next) ? next : previous;
+        return type.equals(Direction.forward) ? next : previous;
     }
 
 

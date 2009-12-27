@@ -53,9 +53,10 @@ public class MainEditor extends JSplitPane
         m_chunkEditor.getTextEditor().addAction("control S", new SaveAction(this, novelloApp));
         m_chunkEditor.getTextEditor().addAction("control Q", new QuitAction());
         m_chunkEditor.getTextEditor().addAction("control SPACE", new PopUpMenuAction());
-        m_chunkEditor.getTextEditor().addAction("alt RIGHT", new StepAction(StepType.next));
-        m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(StepType.previous));
-        m_chunkEditor.getTextEditor().addAction("F2", new FindError(StepType.next));
+        m_chunkEditor.getTextEditor().addAction("alt RIGHT", new StepAction(Direction.forward));
+        m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(Direction.back));
+        m_chunkEditor.getTextEditor().addAction("F2", new Find(Direction.forward, new FindMispelt()));
+        m_chunkEditor.getTextEditor().addAction("shift F2", new Find(Direction.back, new FindMispelt()));
 
         jsp.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener()
         {
@@ -115,7 +116,7 @@ public class MainEditor extends JSplitPane
 
     private void updateWordCount()
     {
-        if (m_chunk!=null)
+        if (m_chunk != null)
         {
             String text = m_chunkEditor.getTextEditor().getText();
             int count = WORD_COUNT_PATTERN.split(text).length;
@@ -152,16 +153,11 @@ public class MainEditor extends JSplitPane
         }
     }
 
-    public enum StepType
-    {
-        next, previous
-    }
-
     private class StepAction extends AbstractAction
     {
-        private StepType m_type;
+        private Direction m_type;
 
-        private StepAction(StepType type)
+        private StepAction(Direction type)
         {
             super(type.toString());
             m_type = type;
@@ -174,14 +170,15 @@ public class MainEditor extends JSplitPane
         }
     }
 
-    private class FindError extends AbstractAction
+    private class Find extends AbstractAction
     {
-        private StepType m_type;
+        private Direction m_type;
+        private FindStrategy m_findStrategy;
 
-        private FindError(StepType type)
+        private Find(Direction type, FindStrategy findStrategy)
         {
-            super(type.toString());
             m_type = type;
+            m_findStrategy = findStrategy;
         }
 
         public void actionPerformed(ActionEvent e)
@@ -192,36 +189,38 @@ public class MainEditor extends JSplitPane
             Content currentContent = m_parentContent;
             boolean found = false;
             boolean stop = false;
-            int cursor= m_chunkEditor.getTextEditor().getCaretPosition();
-            while(!found && !stop)
+            int cursor = m_chunkEditor.getTextEditor().getCaretPosition();
+            while (!found && !stop)
             {
                 System.out.println(currentChunk);
-                Matcher m = m_chunkEditor.WORD.matcher(currentChunk.getText());
-                while(m.find())
+                Matcher m = m_findStrategy.getPattern().matcher(currentChunk.getText().substring(cursor));
+                while (m.find())
                 {
-                    if(m.end()>cursor && !m_chunkEditor.m_dict.wordOk(m.group()))
+                    if (m_findStrategy.accept(m.group()))
                     {
-                        if(currentChunk!=startChunk)
+                        if (currentChunk != startChunk)
                         {
                             m_novelloApp.getAppContainer().expand(currentChunk);
                         }
                         m_chunkEditor.getTextEditor().requestFocus();
-                        m_chunkEditor.getTextEditor().setCaretPosition(m.start());
-                        m_chunkEditor.getTextEditor().setSelectionStart(m.start());
-                        m_chunkEditor.getTextEditor().setSelectionEnd(m.end());
-                        found=true;
+                        int startPos = cursor + m.start();
+                        int endPos = cursor + m.end();
+                        m_chunkEditor.getTextEditor().setCaretPosition(startPos);
+                        m_chunkEditor.getTextEditor().setSelectionStart(startPos);
+                        m_chunkEditor.getTextEditor().setSelectionEnd(endPos);
+                        found = true;
                         break;
                     }
                 }
-                if(!found)
+                if (!found)
                 {
-                    currentContent = m_novelloApp.getBook().step(m_type, currentContent);
+                    currentContent = m_novelloApp.getBook().stepCircular(m_type, currentContent);
                     currentChunk = currentContent.latest();
                     cursor = 0;
                 }
-                if(startChunk==currentChunk)
+                if (startChunk == currentChunk)
                 {
-                    stop=true;
+                    stop = true;
                 }
             }
 
@@ -233,6 +232,19 @@ public class MainEditor extends JSplitPane
         public void actionPerformed(ActionEvent e)
         {
             m_novelloApp.getAppContainer().quit();
+        }
+    }
+
+    private class FindMispelt implements FindStrategy
+    {
+        public Pattern getPattern()
+        {
+            return m_chunkEditor.WORD;
+        }
+
+        public boolean accept(String s)
+        {
+            return !m_chunkEditor.m_dict.wordOk(s);
         }
     }
 }
