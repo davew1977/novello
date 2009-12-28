@@ -424,12 +424,17 @@ public class StartupScreen
             String error = "";
             error += StringUtils.isNullOrEmpty(checkoutFolder) ? "enter checkout folder\n" : "";
             error += StringUtils.isNullOrEmpty(svnLocation) ? "enter svn location\n" : "";
-            error += StringUtils.isNullOrEmpty(username) ? "enter username\n" : "";
-            error += StringUtils.isNullOrEmpty(password) ? "enter password\n" : "";
             if(!error.equals(""))
             {
                 SwingUtils.warnUser(m_mainBox, error);
                 return;
+            }
+            if(StringUtils.isNullOrEmpty(username))
+            {
+                if(!SwingUtils.askUser(m_mainBox, "Are you sure you want to launch without credentials?"))
+                {
+                    return;
+                }
             }
             m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
             m_startupCallback.startNovello(m_bookfile);

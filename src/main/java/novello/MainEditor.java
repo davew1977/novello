@@ -23,6 +23,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.text.SimpleDateFormat;
 
 public class MainEditor extends JSplitPane
 {
@@ -145,10 +146,16 @@ public class MainEditor extends JSplitPane
         {
             TextEditor textEditor = m_chunkEditor.getTextEditor();
             textEditor.newPopUp();
-            textEditor.addPopUpAction(new GotoAction(MainEditor.this, m_novelloApp.getBook().getSection(), "goto"));
-            textEditor.addInsertAction("make split", "-->split");
-            m_chunkEditor.addPopupActions();
 
+            boolean b = m_chunkEditor.addPopupActions();
+            if (!b)
+            {
+                textEditor.addPopUpAction(new GotoAction(MainEditor.this, m_novelloApp.getBook().getSection(), "goto"));
+                textEditor.addInsertAction("make split", "-->split");
+            }
+            String username = m_novelloApp.getCurrentUser();
+            String ts = SimpleDateFormat.getDateInstance().format(System.currentTimeMillis());
+            textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
             textEditor.showPopUp();
         }
     }
@@ -239,7 +246,7 @@ public class MainEditor extends JSplitPane
     {
         public Pattern getPattern()
         {
-            return m_chunkEditor.WORD;
+            return m_chunkEditor.WORD_FOR_SPELLCHECK;
         }
 
         public boolean accept(String s)

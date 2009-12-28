@@ -502,6 +502,10 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
         }
     }
 
+    public String getCurrentUser()
+    {
+        return m_svnFacade.getUsername();
+    }
 
     private String currentFilePath()
     {

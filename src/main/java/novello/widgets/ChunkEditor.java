@@ -42,6 +42,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     Pattern speech = Pattern.compile("[\"\u201c].*?[\"\u201d]");
     Pattern comment = Pattern.compile("<!--.*?-->");
     Pattern wholeLine = Pattern.compile(".*");
+    public Pattern WORD_FOR_SPELLCHECK = Pattern.compile("[A-Za-z'\u2019]*");
     public Pattern WORD = Pattern.compile("[\\w'\u2019]*");
     private UndoAction m_undoAction = new UndoAction();
     private RedoAction m_redoAction = new RedoAction();
@@ -116,7 +117,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
-                        matcher = WORD.matcher(line.m_text);
+                        matcher = WORD_FOR_SPELLCHECK.matcher(line.m_text);
                         while (matcher.find())
                         {
                             if (!m_dict.wordOk(matcher.group()))
@@ -200,15 +201,21 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         m_undoManager.enable();
     }
 
-    public void addPopupActions()
+    /**
+     *
+     * @return true if only these pop up actions should show
+     */
+    public boolean addPopupActions()
     {
         final TextEditor.Line line = m_textEditor.getCurrentLine();
-        final String word = line.wordAtCaret(WORD);
+        final String word = line.wordAtCaret(WORD_FOR_SPELLCHECK);
         if (!m_dict.wordOk(word))
         {
             m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word, line));
             //m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.global, word, line));
+            return true;
         }
+        return false;
     }
 
     private class WordCompleteAction extends AbstractAction
