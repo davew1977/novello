@@ -87,6 +87,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     for (Line line : lineOrLinesPostEdit)
                     {
                         setBold(line.m_startIndex, line.length(), false);
+                        setItalic(line.m_startIndex, line.length(), false);
                         setForegroundColor(line.m_startIndex, line.length(), Color.BLACK);
                         Matcher matcher = speech.matcher(line.m_text);
                         while (matcher.find())
@@ -137,16 +138,16 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.setFont(Font.decode("Courier-PLAIN-12"));
 
             m_textEditor.setWordwrap(true);
-            m_textEditor.addLiveTemplate("a", "<a href=\"$END$\"></a>");
-            m_textEditor.addLiveTemplate("b", "<b>$END$</b>");
-            m_textEditor.addLiveTemplate("i", "<i>$END$</i>");
-            m_textEditor.addLiveTemplate("img", "<img src=\"$END$\"/>");
-            m_textEditor.addLiveTemplate("table", "<table>\n$END$\n</table>");
-            m_textEditor.addLiveTemplate("tr", "<tr>$END$</tr>");
-            m_textEditor.addLiveTemplate("td", "<td>$END$</td>");
-            m_textEditor.addLiveTemplate("p", "<pre>$END$</pre>");
-            m_textEditor.addLiveTemplate("c", "<!--$END$-->");
-            m_textEditor.addLiveTemplate("s", "\u201c$END$\u201d");
+            m_textEditor.addLiveTemplate("a", "<a href=\"$0\">$1</a>$2");
+            m_textEditor.addLiveTemplate("b", "<b>$0</b>$1");
+            m_textEditor.addLiveTemplate("i", "<i>$0</i>$1");
+            m_textEditor.addLiveTemplate("img", "<img src=\"$0\"/>$1");
+            m_textEditor.addLiveTemplate("table", "<table>\n$0\n</table>");
+            m_textEditor.addLiveTemplate("tr", "<tr>$0</tr>");
+            m_textEditor.addLiveTemplate("td", "<td>$0</td>");
+            m_textEditor.addLiveTemplate("p", "<pre>$0</pre>");
+            m_textEditor.addLiveTemplate("c", "<!--$0-->");
+            m_textEditor.addLiveTemplate("s", "\u201c$0\u201d$1");
 
             m_textEditor.addAction("control W", new AbstractAction()
             {
