@@ -1,1 +1,51 @@
-<a/> 
+<Book localDictionary="Novello,">
+  <Section name="workspace">
+    <Children>
+      <Section name="information">
+        <Children>
+          <Content grade="0" name="1">
+            <Versions>
+              <TextChunk>
+                <Text><![CDATA[<h2>Novello Collaborative Stories</h2>
+Welcome to Novello Collaborative Stories. Here, you can pretty much write what you like. If you have any questions you can email me at davew1977@yahoo.co.uk
+<h3>What you can do</h3>Create a new story under "stories". Start it off. Write any number of words you like.
+Write messages to others by typing "c" then tab <!--like this!--> &lt;!-- like this! -->
+Continue someone else's story
+End someone else's story
+
+enjoy!]]></Text>
+              </TextChunk>
+            </Versions>
+          </Content>
+        </Children>
+      </Section>
+      <Section name="stories">
+        <Children>
+          <Section name="The Xylophone">
+            <Children>
+              <Content grade="0" name="1">
+                <Versions>
+                  <TextChunk>
+                    <Text><![CDATA[<!--A story about music, love and xylophones-->]]></Text>
+                  </TextChunk>
+                </Versions>
+              </Content>
+            </Children>
+            <Text><![CDATA[This might be a story about the lovely word that starts with the letter X or it may turn out to be a metaphor for something related to long running astronomy program hosts]]></Text>
+          </Section>
+          <Section name="The Temptress">
+            <Children>
+              <Content grade="0" name="1">
+                <Versions>
+                  <TextChunk>
+                    <Text><![CDATA[<!--A story about a temptress, perhaps she's a vampire, or maybe she's from Portsmouth-->]]></Text>
+                  </TextChunk>
+                </Versions>
+              </Content>
+            </Children>
+          </Section>
+        </Children>
+      </Section>
+    </Children>
+  </Section>
+</Book>
