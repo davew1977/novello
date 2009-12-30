@@ -10,11 +10,17 @@ import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
+import com.xapp.application.utils.SwingUtils;
 import novello.wordhandling.DictFileHandler;
 import novello.wordhandling.Dictionary;
 import novello.widgets.ChunkEditor;
 
 import javax.swing.*;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
@@ -41,6 +47,7 @@ public class MainEditor extends JSplitPane
         m_browserView = new BrowserView();
         m_chunkEditor = new ChunkEditor();
         m_chunkEditor.setNovelloApp(m_novelloApp);
+        m_chunkEditor.setMainEditor(this);
 
         final JScrollPane jsp = new JScrollPane(m_browserView);
         jsp.setPreferredSize(new Dimension(300, 400));
@@ -53,7 +60,6 @@ public class MainEditor extends JSplitPane
 
         m_chunkEditor.getTextEditor().addAction("control S", new SaveAction(this, novelloApp));
         m_chunkEditor.getTextEditor().addAction("control Q", new QuitAction());
-        m_chunkEditor.getTextEditor().addAction("control SPACE", new PopUpMenuAction());
         m_chunkEditor.getTextEditor().addAction("alt RIGHT", new StepAction(Direction.forward));
         m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(Direction.back));
         m_chunkEditor.getTextEditor().addAction("F2", new Find(Direction.forward, new FindMispelt()));
@@ -111,8 +117,17 @@ public class MainEditor extends JSplitPane
     public void render()
     {
         HTML html = new HTMLImpl();
+        html.setStyle("p {\n" +
+                "color:#222222;  " +
+                "line-height: 200%;\n" +
+                "font-family:Tahoma, sans-serif;" +
+                "}");
         html.p(m_chunk.getText());
         m_browserView.setHTML(html);
+        System.out.println(html.htmlDoc());
+        HTMLDocument document = (HTMLDocument) m_browserView.getDocument();
+        SimpleAttributeSet a = new SimpleAttributeSet();
+        document.setParagraphAttributes(0, document.getLength(), a, false);
     }
 
     private void updateWordCount()
@@ -136,27 +151,6 @@ public class MainEditor extends JSplitPane
                 m_chunk = null;
                 m_novelloApp.doSplit(chunk);
             }
-        }
-    }
-
-
-    private class PopUpMenuAction extends AbstractAction
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            TextEditor textEditor = m_chunkEditor.getTextEditor();
-            textEditor.newPopUp();
-
-            boolean b = m_chunkEditor.addPopupActions();
-            if (!b)
-            {
-                textEditor.addPopUpAction(new GotoAction(MainEditor.this, m_novelloApp.getBook().getSection(), "goto"));
-                textEditor.addInsertAction("make split", "-->split");
-            }
-            String username = m_novelloApp.getCurrentUser();
-            String ts = SimpleDateFormat.getDateInstance().format(System.currentTimeMillis());
-            textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
-            textEditor.showPopUp();
         }
     }
 

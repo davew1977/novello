@@ -12,7 +12,7 @@ import com.xapp.objectmodelling.tree.TreeNode;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
-class GotoAction extends AbstractAction
+public class GotoAction extends AbstractAction
 {
     Object m_subject;
     private MainEditor m_mainEditor;

@@ -22,4 +22,6 @@ public interface ComboChooserClient<T>
     void selectionChanged(T item);
 
     void comboRemoved();
+
+    boolean isEditable();
 }

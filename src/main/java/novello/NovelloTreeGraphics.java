@@ -18,6 +18,7 @@ public class NovelloTreeGraphics extends SimpleTreeGraphics
     private static final ImageIcon CHUNK = loadImage("/small-pen.png");
     public static final ImageIcon OOM_ICON = loadImage("/oom-icon.png");
     public static final ImageIcon SVN_ICON = loadImage("/svn-logo.png");
+    public static final ImageIcon WIKIPEDIA_ICON = loadImage("/wikipedia-icn.jpg");
     public static final ImageIcon UPDATE_ICON = loadImage("/update.png");
     public static final ImageIcon COMMIT_ICON = loadImage("/commit.png");
     public static final ImageIcon SAVE_ICON = loadImage("/save.png");

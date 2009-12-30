@@ -10,23 +10,31 @@ package novello.widgets;
 import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.editor.widgets.AbstractPropertyWidget;
 import com.xapp.application.utils.SwingUtils;
+import com.xapp.application.utils.html.HTML;
+import com.xapp.application.utils.html.HTMLImpl;
+import com.xapp.utils.StringUtils;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.text.SimpleDateFormat;
 
-import novello.wordhandling.Dictionary;
-import novello.wordhandling.ThesaurusService;
-import novello.wordhandling.DictFileHandler;
-import novello.wordhandling.DictionaryType;
+import novello.wordhandling.*;
 import novello.undo.*;
-import novello.TextChunk;
-import novello.NovelloApp;
+import novello.*;
+import novello.wikipedia.WikipediaService;
+import novello.wikipedia.WikipediaResponse;
+import novello.wikipedia.ResultItem;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
@@ -36,6 +44,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private static final Color DARKGREEN = new Color(0, 128, 0);
     public Dictionary m_dict;
     private ThesaurusService m_thesaurus = new ThesaurusService();
+    private WikipediaService m_wikipediaService = new WikipediaService();
     private UndoManager m_undoManager = new UndoManager();
 
     Pattern html = Pattern.compile("<[\\w\\W&&[^>]]*>");
@@ -47,10 +56,16 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private UndoAction m_undoAction = new UndoAction();
     private RedoAction m_redoAction = new RedoAction();
     private NovelloApp m_novelloApp;
+    private MainEditor m_mainEditor;
 
     public void setDict(Dictionary dict)
     {
         m_dict = dict;
+    }
+
+    public void setMainEditor(MainEditor mainEditor)
+    {
+        m_mainEditor = mainEditor;
     }
 
     public void setNovelloApp(NovelloApp novelloApp)
@@ -163,6 +178,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.addAction("control T", new ThesaurusAction());
             m_textEditor.addAction("control Z", m_undoAction);
             m_textEditor.addAction("control shift Z", m_redoAction);
+            m_textEditor.addAction("control SPACE", new PopUpMenuAction());
         }
         return m_textEditor;
     }
@@ -201,23 +217,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         m_undoManager.enable();
     }
 
-    /**
-     *
-     * @return true if only these pop up actions should show
-     */
-    public boolean addPopupActions()
-    {
-        final TextEditor.Line line = m_textEditor.getCurrentLine();
-        final String word = line.wordAtCaret(WORD_FOR_SPELLCHECK);
-        if (!m_dict.wordOk(word))
-        {
-            m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word, line));
-            //m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.global, word, line));
-            return true;
-        }
-        return false;
-    }
-
     private class WordCompleteAction extends AbstractAction
     {
         public void actionPerformed(ActionEvent e)
@@ -228,7 +227,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
             if (!words.isEmpty())
             {
-                new ComboChooser<String>(p.x - 2, p.y - 2, m_textEditor, words, wordToCaret, new MyComboChooserClient()
+                ComboChooser<String> combo = new ComboChooser<String>();
+                combo.init(p.x - 2, p.y - 2, m_textEditor, words, wordToCaret, new MyComboChooserClient()
                 {
                     public void itemChosen(String item)
                     {
@@ -251,6 +251,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         chunk.setText("this is a text chunk\nthis is another line");
         ChunkEditor chunkEditor = new ChunkEditor();
         chunkEditor.setDict(dictionary);
+        chunkEditor.setNovelloApp(new NovelloApp(null));
         chunkEditor.setValue(chunk.getText(), chunk);
         SwingUtils.showInFrame(chunkEditor.getComponent());
     }
@@ -294,11 +295,11 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             String word = line.wordAtCaret();
             final String wordToCaret = line.wordToCaret();
             Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
-            Collection<String> options = m_thesaurus.suggest(word);
+            Collection<String> options = m_thesaurus.lookup(word);
             if (!options.isEmpty())
             {
-
-                new ComboChooser<String>(p.x - 2, p.y - 2, m_textEditor, options, wordToCaret, new MyComboChooserClient()
+                ComboChooser<String> combo = new ComboChooser<String>();
+                combo.init(p.x - 2, p.y - 2, m_textEditor, options, wordToCaret, new MyComboChooserClient()
                 {
                     public void itemChosen(String item)
                     {
@@ -351,6 +352,106 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             {
                 m_novelloApp.getAppContainer().setStatusMessage("");
             }
+        }
+    }
+
+    static final Color DARK_GREEN = Color.decode("0x006600");
+
+    private class WikipediaAction extends AbstractAction
+    {
+        private String m_word;
+
+
+        public WikipediaAction(String wordToLookup)
+        {
+            super("Lookup: " + wordToLookup, NovelloTreeGraphics.WIKIPEDIA_ICON);
+            m_word = wordToLookup;
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            WikipediaResponse response = m_wikipediaService.lookup(m_word.trim());
+            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition());
+            final JList list = new JList(new Vector<Object>(response.getQueryResult().getItems()));
+            list.setCellRenderer(new DefaultListCellRenderer()
+            {
+                public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+                {
+                    JLabel comp = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    SwingUtils.setFont(comp);
+                    ResultItem item = (ResultItem) value;
+                    if (item != null)
+                    {
+                        HTML html = new HTMLImpl();
+                        html.b().color(DARK_GREEN).append(item.getTitle()).b().br();
+                        html.color(Color.BLACK).size(3).p(StringUtils.breakText(item.getSnippet(), "<br/>", 65));
+                        comp.setText(html.htmlDoc());
+                    }
+                    return comp;
+                }
+            });
+            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            JScrollPane jsp = new JScrollPane(list);
+            jsp.setPreferredSize(new Dimension(400, 300));
+            final JFrame f = SwingUtils.createFrame(jsp);
+            f.setTitle("Result for " + m_word.trim());
+            f.setLocationRelativeTo(m_textEditor);
+            f.setVisible(true);
+            list.addKeyListener(new KeyAdapter()
+            {
+                public void keyTyped(KeyEvent e)
+                {
+                    System.out.println(e.getKeyChar());
+                    if (e.getKeyChar() == KeyEvent.VK_ENTER)
+                    {
+                        if (list.getSelectedValue() != null)
+                        {
+                            m_wikipediaService.open((ResultItem) list.getSelectedValue());
+                        }
+                        f.setVisible(false);
+                    }
+                    if (e.getKeyChar() == KeyEvent.VK_ESCAPE)
+                    {
+                        f.setVisible(false);
+                    }
+                }
+            });
+
+        }
+    }
+
+
+    private class PopUpMenuAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            TextEditor textEditor = getTextEditor();
+            textEditor.newPopUp();
+            final TextEditor.Line line = m_textEditor.getCurrentLine();
+            final String word = line.wordAtCaret(WORD_FOR_SPELLCHECK);
+            if (!m_dict.wordOk(word))
+            {
+                m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word, line));
+                //m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.global, word, line));
+            }
+            else
+            {
+
+                if (m_mainEditor != null)
+                {
+                    textEditor.addPopUpAction(new GotoAction(m_mainEditor, m_novelloApp.getBook().getSection(), "goto"));
+                    textEditor.addInsertAction("make split", "-->split");
+                }
+
+
+                String username = m_novelloApp.getCurrentUser();
+                String ts = SimpleDateFormat.getDateInstance().format(System.currentTimeMillis());
+                textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
+            }
+            String wordToLookup = m_textEditor.getSelectedText();
+            wordToLookup = wordToLookup != null ? wordToLookup : word;
+            m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup));
+            textEditor.showPopUp();
         }
     }
 }

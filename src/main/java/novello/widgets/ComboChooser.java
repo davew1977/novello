@@ -24,7 +24,8 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
     private FocusListener m_focusAdaptor;
     private MyDocumentListener m_myDocumentListener;
 
-    public ComboChooser(int x, int y, final JComponent parent, Collection<T> initialValues, T initialValue, ComboChooserClient<T> listener)
+
+    public void init(int x, int y, final JComponent parent, Collection<T> initialValues, T initialValue, ComboChooserClient<T> listener)
     {
         m_listener = listener;
         m_parent = parent;
@@ -46,10 +47,11 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
         parent.revalidate();
         parent.repaint();
 
-        setEditable(true);
+        setEditable(listener.isEditable());
         setModel(initialValues);
         setSelectedItem(initialValue);
-        new Thread(new Runnable()  //hack because the damn popup won't open without a delay
+        setPopupVisible(true);
+        /*new Thread(new Runnable()  //hack because the damn popup won't open without a delay
         {
             public void run()
             {
@@ -61,10 +63,16 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
                 {
                     throw new RuntimeException(e);
                 }
-                setPopupVisible(true);
-                System.out.println(isPopupVisible());
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        setPopupVisible(true);
+                        System.out.println(isPopupVisible());
+                    }
+                });
             }
-        }).start();
+        }).start();*/
     }
 
     private void setModel(Collection<T> initialValues)

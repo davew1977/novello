@@ -29,4 +29,9 @@ public class SimpleComboChooserClient<T> implements ComboChooserClient<T>
     {
 
     }
+
+    public boolean isEditable()
+    {
+        return true;
+    }
 }
