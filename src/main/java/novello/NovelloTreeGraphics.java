@@ -23,6 +23,7 @@ public class NovelloTreeGraphics extends SimpleTreeGraphics
     public static final ImageIcon COMMIT_ICON = loadImage("/commit.png");
     public static final ImageIcon SAVE_ICON = loadImage("/save.png");
     public static final ImageIcon REVERT_ICON = loadImage("/revert.png");
+    public static final ImageIcon WORDPRESS_ICON = loadImage("/wordpress-icon.png");
 
     public ImageIcon getNodeImage(Node node)
     {

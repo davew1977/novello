@@ -7,34 +7,30 @@
  */
 package novello.widgets;
 
-import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.editor.widgets.AbstractPropertyWidget;
+import com.xapp.application.editor.widgets.TextEditor;
 import com.xapp.application.utils.SwingUtils;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
 import com.xapp.utils.StringUtils;
+import novello.*;
+import novello.undo.UndoManager;
+import novello.undo.Update;
+import novello.wikipedia.ResultItem;
+import novello.wikipedia.WikipediaResponse;
+import novello.wikipedia.WikipediaService;
+import novello.wordhandling.*;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Vector;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.text.SimpleDateFormat;
-
-import novello.wordhandling.*;
-import novello.undo.*;
-import novello.*;
-import novello.wikipedia.WikipediaService;
-import novello.wikipedia.WikipediaResponse;
-import novello.wikipedia.ResultItem;
+import java.util.*;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
@@ -42,7 +38,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private TextEditor m_textEditor;
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
-    public Dictionary m_dict;
+    public DictionaryImpl m_dict = new DictionaryImpl();
+    public DictionaryCache m_dictCache = new DictionaryCache(m_dict);
     private ThesaurusService m_thesaurus = new ThesaurusService();
     private WikipediaService m_wikipediaService = new WikipediaService();
     private UndoManager m_undoManager = new UndoManager();
@@ -58,9 +55,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private NovelloApp m_novelloApp;
     private MainEditor m_mainEditor;
 
-    public void setDict(Dictionary dict)
+    public void setDict(DictionaryImpl dict)
     {
         m_dict = dict;
+        m_dictCache = new DictionaryCache(dict);
     }
 
     public void setMainEditor(MainEditor mainEditor)
@@ -135,7 +133,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                         matcher = WORD_FOR_SPELLCHECK.matcher(line.m_text);
                         while (matcher.find())
                         {
-                            if (!m_dict.wordOk(matcher.group()))
+                            if (!m_dictCache.wordOk(matcher.group()))
                             {
                                 int start = line.m_startIndex + matcher.start();
                                 int length = matcher.group().length();
@@ -154,16 +152,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.setFont(Font.decode("Courier-PLAIN-12"));
 
             m_textEditor.setWordwrap(true);
-            m_textEditor.addLiveTemplate("a", "<a href=\"$0\">$1</a>$2");
-            m_textEditor.addLiveTemplate("b", "<b>$0</b>$1");
-            m_textEditor.addLiveTemplate("i", "<i>$0</i>$1");
-            m_textEditor.addLiveTemplate("img", "<img src=\"$0\"/>$1");
-            m_textEditor.addLiveTemplate("table", "<table>\n$0\n</table>");
-            m_textEditor.addLiveTemplate("tr", "<tr>$0</tr>");
-            m_textEditor.addLiveTemplate("td", "<td>$0</td>");
-            m_textEditor.addLiveTemplate("p", "<pre>$0</pre>");
-            m_textEditor.addLiveTemplate("c", "<!--$0-->");
-            m_textEditor.addLiveTemplate("s", "\u201c$0\u201d$1");
 
             m_textEditor.addAction("control W", new AbstractAction()
             {
@@ -211,10 +199,33 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     public void setValue(String value, Object target)
     {
+        m_dictCache.reset();
         m_undoManager.disable();
         m_undoManager.init();
         getTextEditor().setText(value);
         m_undoManager.enable();
+        m_textEditor.clearLiveTemplate();
+        m_textEditor.addLiveTemplate("a", "<a href=\"$0\">$1</a>$2");
+        m_textEditor.addLiveTemplate("b", "<b>$0</b>$1");
+        m_textEditor.addLiveTemplate("i", "<i>$0</i>$1");
+        m_textEditor.addLiveTemplate("img", "<img src=\"$0\"/>$1");
+        m_textEditor.addLiveTemplate("table", "<table>\n$0\n</table>");
+        m_textEditor.addLiveTemplate("tr", "<tr>$0</tr>");
+        m_textEditor.addLiveTemplate("td", "<td>$0</td>");
+        m_textEditor.addLiveTemplate("p", "<pre>$0</pre>");
+        m_textEditor.addLiveTemplate("c", "<!--$0-->");
+        m_textEditor.addLiveTemplate("s", "\u201c$0\u201d$1");
+
+        if(target instanceof Content)
+        {
+            Content content = (Content) target;
+            Map<String,String> customTemplates = content.resolveCustomLiveTemplates();
+            for (Map.Entry<String, String> e : customTemplates.entrySet())
+            {
+                m_textEditor.addLiveTemplate(e.getKey(), e.getValue());
+            }
+        }
+
     }
 
     private class WordCompleteAction extends AbstractAction
@@ -246,13 +257,13 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     public static void main(String[] args)
     {
-        Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
+        DictionaryImpl dictionary = DictFileHandler.loadDictionary("en_uk");
         TextChunk chunk = new TextChunk();
-        chunk.setText("this is a text chunk\nthis is another line");
+        chunk.setText("this is a text chunk\nthis is another line\nthis is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line ");
         ChunkEditor chunkEditor = new ChunkEditor();
         chunkEditor.setDict(dictionary);
         chunkEditor.setNovelloApp(new NovelloApp(null));
-        chunkEditor.setValue(chunk.getText(), chunk);
+        chunkEditor.setValue(chunk.getText(), null);
         SwingUtils.showInFrame(chunkEditor.getComponent());
     }
 
@@ -360,12 +371,14 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private class WikipediaAction extends AbstractAction
     {
         private String m_word;
+        private TextEditor.Line m_line;
 
 
-        public WikipediaAction(String wordToLookup)
+        public WikipediaAction(String wordToLookup, TextEditor.Line line)
         {
             super("Lookup: " + wordToLookup, NovelloTreeGraphics.WIKIPEDIA_ICON);
             m_word = wordToLookup;
+            m_line = line;
         }
 
         public void actionPerformed(ActionEvent e)
@@ -395,23 +408,33 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             jsp.setPreferredSize(new Dimension(400, 300));
             final JFrame f = SwingUtils.createFrame(jsp);
             f.setTitle("Result for " + m_word.trim());
-            f.setLocationRelativeTo(m_textEditor);
+            f.setLocationRelativeTo(m_textEditor.getParent());
             f.setVisible(true);
             list.addKeyListener(new KeyAdapter()
             {
                 public void keyTyped(KeyEvent e)
                 {
                     System.out.println(e.getKeyChar());
+                    ResultItem resultItem = (ResultItem) list.getSelectedValue();
                     if (e.getKeyChar() == KeyEvent.VK_ENTER)
                     {
                         if (list.getSelectedValue() != null)
                         {
-                            m_wikipediaService.open((ResultItem) list.getSelectedValue());
+                            m_wikipediaService.open(resultItem);
                         }
                         f.setVisible(false);
                     }
-                    if (e.getKeyChar() == KeyEvent.VK_ESCAPE)
+                    else if (e.getKeyChar() == KeyEvent.VK_ESCAPE)
                     {
+                        f.setVisible(false);
+                    }
+                    else if (e.getKeyChar() == KeyEvent.VK_SPACE)
+                    {
+                        String link = m_wikipediaService.link((ResultItem) list.getSelectedValue());
+                        String insert = String.format("<a href=\"%s\">%s</a>", link, m_word);
+                        int index = m_line.caretIndexInDoc() - m_line.wordToCaret().length();
+                        m_textEditor.remove(index, m_word.length());
+                        m_textEditor.insert(index, insert);
                         f.setVisible(false);
                     }
                 }
@@ -450,7 +473,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             }
             String wordToLookup = m_textEditor.getSelectedText();
             wordToLookup = wordToLookup != null ? wordToLookup : word;
-            m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup));
+            m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup, line));
             textEditor.showPopUp();
         }
     }

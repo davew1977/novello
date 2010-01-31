@@ -20,7 +20,7 @@ import novello.NovelloLauncher;
 
 public class DictFileHandler
 {
-    public static Dictionary loadFromClasspath(String url)
+    public static DictionaryImpl loadFromClasspath(String url)
     {
         File f;
         try
@@ -34,9 +34,9 @@ public class DictFileHandler
         return load(f);
     }
 
-    public static Dictionary load(File f)
+    public static DictionaryImpl load(File f)
     {
-        Dictionary dict = new Dictionary();
+        DictionaryImpl dict = new DictionaryImpl();
         try
         {
             ZipFile z = new ZipFile(f);
@@ -60,12 +60,12 @@ public class DictFileHandler
 
     public static void main(String[] args)
     {
-        Dictionary dictionary = DictFileHandler.loadFromClasspath("/british.zip");
+        DictionaryImpl dictionary = DictFileHandler.loadFromClasspath("/british.zip");
         List<String> words = dictionary.findWords("H");
         System.out.println("words = " + words);
     }
 
-    public static Dictionary loadDictionary(String language)
+    public static DictionaryImpl loadDictionary(String language)
     {
         //hardcode british english
         File cache = new File(NovelloLauncher.HOME_DIR, "_NOVELLO_CACHE");

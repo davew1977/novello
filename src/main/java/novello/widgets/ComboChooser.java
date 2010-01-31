@@ -50,8 +50,7 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
         setEditable(listener.isEditable());
         setModel(initialValues);
         setSelectedItem(initialValue);
-        setPopupVisible(true);
-        /*new Thread(new Runnable()  //hack because the damn popup won't open without a delay
+        new Thread(new Runnable()  //hack because the damn popup won't open without a delay
         {
             public void run()
             {
@@ -63,16 +62,10 @@ public class ComboChooser<T> extends JComboBox implements ItemListener
                 {
                     throw new RuntimeException(e);
                 }
-                SwingUtilities.invokeLater(new Runnable()
-                {
-                    public void run()
-                    {
-                        setPopupVisible(true);
-                        System.out.println(isPopupVisible());
-                    }
-                });
+                setPopupVisible(true);
+                System.out.println(isPopupVisible());
             }
-        }).start();*/
+        }).start();
     }
 
     private void setModel(Collection<T> initialValues)

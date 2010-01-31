@@ -20,6 +20,7 @@
         <jar href="novello.jar" main="true"/>
         <jar href="xapp-1.0-SNAPSHOT.jar"/>
         <jar href="svnkit-1.2.2-build5427.jar"/>
+        <jar href="core-renderer.jar"/>
         <!--jar href="svnkit-cli-1.2.2-build5427.jar"/-->
 
         <property name="svn.mode" value="true"/>

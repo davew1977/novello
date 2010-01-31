@@ -6,21 +6,13 @@
  */
 package novello;
 
-import com.xapp.application.editor.widgets.TextEditor;
-import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.application.utils.SwingUtils;
 import novello.wordhandling.DictFileHandler;
-import novello.wordhandling.Dictionary;
+import novello.wordhandling.DictionaryImpl;
 import novello.widgets.ChunkEditor;
 
 import javax.swing.*;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
@@ -29,33 +21,42 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.text.SimpleDateFormat;
+
+import org.xhtmlrenderer.simple.XHTMLPanel;
+import org.xhtmlrenderer.simple.FSScrollPane;
+import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
+import org.xhtmlrenderer.swing.SelectionHighlighter;
 
 public class MainEditor extends JSplitPane
 {
     NovelloApp m_novelloApp;
-    private BrowserView m_browserView;
+    XHTMLPanel m_htmlRenderer;
     ChunkEditor m_chunkEditor;
     private TextChunk m_chunk = new TextChunk();
     private Content m_parentContent;
     private Pattern WORD_COUNT_PATTERN = Pattern.compile("\\s+");
+    private final JScrollPane m_jsp1;
+    private final JScrollPane m_jsp2;
 
     public MainEditor(NovelloApp novelloApp)
     {
         super(VERTICAL_SPLIT);
         m_novelloApp = novelloApp;
-        m_browserView = new BrowserView();
+        m_htmlRenderer = new XHTMLPanel();
+        SelectionHighlighter s = new SelectionHighlighter();
+        s.install(m_htmlRenderer);
         m_chunkEditor = new ChunkEditor();
         m_chunkEditor.setNovelloApp(m_novelloApp);
         m_chunkEditor.setMainEditor(this);
 
-        final JScrollPane jsp = new JScrollPane(m_browserView);
-        jsp.setPreferredSize(new Dimension(300, 400));
+        m_jsp1 = new FSScrollPane(m_htmlRenderer);
+        m_jsp1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        m_jsp1.setPreferredSize(new Dimension(300, 400));
 
-        add(jsp);
+        add(m_jsp1);
 
-        final JScrollPane jsp2 = m_chunkEditor.getComponent();
-        add(jsp2);
+        m_jsp2 = m_chunkEditor.getComponent();
+        add(m_jsp2);
 
 
         m_chunkEditor.getTextEditor().addAction("control S", new SaveAction(this, novelloApp));
@@ -65,22 +66,10 @@ public class MainEditor extends JSplitPane
         m_chunkEditor.getTextEditor().addAction("F2", new Find(Direction.forward, new FindMispelt()));
         m_chunkEditor.getTextEditor().addAction("shift F2", new Find(Direction.back, new FindMispelt()));
 
-        jsp.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener()
-        {
-            public void adjustmentValueChanged(AdjustmentEvent e)
-            {
-                jsp2.getVerticalScrollBar().setValue(e.getValue());
-            }
-        });
-        jsp2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener()
-        {
-            public void adjustmentValueChanged(AdjustmentEvent e)
-            {
-                jsp.getVerticalScrollBar().setValue(e.getValue());
-            }
-        });
+        m_jsp1.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
+        m_jsp2.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
 
-        Dictionary dictionary = DictFileHandler.loadDictionary("en_uk");
+        DictionaryImpl dictionary = DictFileHandler.loadDictionary("en_uk");
         dictionary.addWords(m_novelloApp.getBook().getLocalDictionary());
         m_chunkEditor.setDict(dictionary);
 
@@ -110,24 +99,18 @@ public class MainEditor extends JSplitPane
         m_chunk = textChunk;
         m_parentContent = parentContent;
         render();
-        m_chunkEditor.setValue(textChunk.getText(), null);
+        m_chunkEditor.setValue(textChunk.getText(), parentContent);
         updateWordCount();
     }
 
     public void render()
     {
         HTML html = new HTMLImpl();
-        html.setStyle("p {\n" +
-                "color:#222222;  " +
-                "line-height: 200%;\n" +
-                "font-family:Tahoma, sans-serif;" +
-                "}");
+        html.setStyle(m_novelloApp.getBook().getStyleSheet());
         html.p(m_chunk.getText());
-        m_browserView.setHTML(html);
-        System.out.println(html.htmlDoc());
-        HTMLDocument document = (HTMLDocument) m_browserView.getDocument();
-        SimpleAttributeSet a = new SimpleAttributeSet();
-        document.setParagraphAttributes(0, document.getLength(), a, false);
+        int value = m_jsp2.getVerticalScrollBar().getValue();
+        m_htmlRenderer.setDocumentFromString(html.htmlDoc(), null, new XhtmlNamespaceHandler());
+        m_jsp2.getVerticalScrollBar().setValue(value);
     }
 
     private void updateWordCount()
@@ -246,6 +229,28 @@ public class MainEditor extends JSplitPane
         public boolean accept(String s)
         {
             return !m_chunkEditor.m_dict.wordOk(s);
+        }
+    }
+
+    private class MyAdjustmentListener implements AdjustmentListener
+    {
+        private boolean m_ignore;
+
+        public void adjustmentValueChanged(AdjustmentEvent e)
+        {
+            //work out percentage
+            if (!m_ignore)
+            {
+                JScrollPane me = e.getSource() == m_jsp2.getVerticalScrollBar() ? m_jsp2 : m_jsp1;
+                JScrollPane other = e.getSource() == m_jsp2.getVerticalScrollBar() ? m_jsp1 : m_jsp2;
+
+                int myMax = me.getVerticalScrollBar().getMaximum() - me.getVerticalScrollBar().getVisibleAmount();
+                int otherMax = other.getVerticalScrollBar().getMaximum() - other.getVerticalScrollBar().getVisibleAmount();
+                float proportion = e.getValue() / (float) myMax;
+                m_ignore = true;
+                other.getVerticalScrollBar().setValue((int) (otherMax * proportion));
+                m_ignore = false;
+            }
         }
     }
 }

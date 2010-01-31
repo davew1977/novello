@@ -32,7 +32,7 @@ public class WikipediaService implements Lookup<String, WikipediaResponse>
     {
         try
         {
-            Desktop.getDesktop().browse(new URI("http://www.wikipedia.org/wiki/" + item.getTitle().replace(' ','_')));
+            Desktop.getDesktop().browse(new URI(link(item)));
         }
         catch (IOException e)
         {
@@ -42,5 +42,10 @@ public class WikipediaService implements Lookup<String, WikipediaResponse>
         {
             throw new RuntimeException(e);
         }
+    }
+
+    public String link(ResultItem item)
+    {
+        return "http://www.wikipedia.org/wiki/" + item.getTitle().replace(' ','_');
     }
 }

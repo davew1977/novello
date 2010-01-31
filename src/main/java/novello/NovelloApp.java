@@ -8,11 +8,9 @@
 package novello;
 
 import com.xapp.application.api.*;
-import com.xapp.application.utils.html.BrowserView;
-import com.xapp.application.utils.html.BrowserViewListener;
+import com.xapp.application.utils.SwingUtils;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.application.utils.SwingUtils;
 import com.xapp.objectmodelling.api.ClassDatabase;
 import com.xapp.objectmodelling.core.ListProperty;
 import com.xapp.objectmodelling.core.PropertyChangeTuple;
@@ -20,6 +18,13 @@ import com.xapp.objectmodelling.tree.Tree;
 import com.xapp.objectmodelling.tree.TreeNode;
 import com.xapp.utils.svn.SVNFacade;
 import com.xapp.utils.svn.UpdateResult;
+import novello.help.AboutPane;
+import novello.help.ReferenceCard;
+import novello.wordhandling.DictionaryType;
+import org.tmatesoft.svn.core.SVNException;
+import org.xhtmlrenderer.simple.XHTMLPanel;
+import org.xhtmlrenderer.simple.FSScrollPane;
+import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,14 +36,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import novello.help.AboutPane;
-import novello.help.ReferenceCard;
-import novello.wordhandling.DictionaryType;
-import org.tmatesoft.svn.core.SVNException;
-
-public class NovelloApp extends SimpleApplication<Book> implements BrowserViewListener
+public class NovelloApp extends SimpleApplication<Book>
 {
-    private BrowserView m_browserView;
     private MainEditor m_mainEditor;
     private ClassDatabase<Book> m_classDatabase;
     private AppData m_appData;
@@ -48,6 +47,8 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     private RevertAction m_revertAction = new RevertAction();
     private SVNFacade m_svnFacade;
     private Executor m_extraThread = Executors.newFixedThreadPool(1);
+    private XHTMLPanel m_browserView;
+    private FSScrollPane m_browserScrollPane;
 
     public NovelloApp(SVNFacade svnFacade)
     {
@@ -58,8 +59,8 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     public void init(ApplicationContainer<Book> applicationContainer)
     {
         super.init(applicationContainer);
-        m_browserView = new BrowserView(this);
-        m_browserView.setPreferredSize(new Dimension(600, m_browserView.getPreferredSize().height));
+        m_browserView = new XHTMLPanel();
+        m_browserScrollPane = new FSScrollPane(m_browserView);
         m_classDatabase = m_appContainer.getGuiContext().getClassDatabase();
         m_mainEditor = new MainEditor(this);
         m_appContainer.setUserPanel(m_mainEditor, false);
@@ -154,11 +155,18 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             {
                 public void run()
                 {
-                    m_browserView.setHTML(render(m_appContainer.getGuiContext().getInstance()));
+                    setHtml(render(m_appContainer.getGuiContext().getInstance()));
                     m_appContainer.setUserPanel(m_browserView);
                 }
             });
         }
+    }
+
+    private void setHtml(HTML html)
+    {
+        html.setStyle(getBook().getStyleSheet());
+        String content = html.htmlDoc();
+        m_browserView.setDocumentFromString(content, null, new XhtmlNamespaceHandler());
     }
 
     private void updateViewState()
@@ -215,8 +223,8 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
             Section section = (Section) node.wrappedObject();
             html.p("word count: " + section.wordcount());
             render(html, section, true);
-            m_browserView.setHTML(html);
-            m_appContainer.setUserPanel(m_browserView);
+            setHtml(html);
+            m_appContainer.setUserPanel(m_browserScrollPane, false);
         }
         else if (node.wrappedObject() instanceof TextChunk)
         {
@@ -317,11 +325,12 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
                 html.i().color(Color.BLUE).p(section.getText()).i().color(Color.BLACK);
             }
             Content content = (Content) section;
-            int pixels = content.getGrade() * 6;
+            /*int pixels = content.getGrade() * 6;
             String colors = pixels == 0 ? "red,red" : pixels == 600 ? "green,green" : "green,red";
             int noVersions = content.getVersions().size();
-            String versionsText = "&nbsp;&nbsp;&nbsp;" + noVersions + " version" + (noVersions > 1 ? "s" : "");
-            html.table(pixels + "," + (600 - pixels) + ",200", "&nbsp;,&nbsp;," + versionsText, colors + ",white");
+            String versionsText = "&#160;&#160;&#160;" + noVersions + " version" + (noVersions > 1 ? "s" : "");
+            html.table(pixels + "," + (600 - pixels) + ",200", "&#160;,&#160;," + versionsText, colors + ",white");*/
+            html.h(2, String.format("%s (%s Versions)", content.getName(), content.getVersions().size()));
             html.p(content.getLatestText());
         }
         else
@@ -363,31 +372,6 @@ public class NovelloApp extends SimpleApplication<Book> implements BrowserViewLi
     }
 
     public void linkPressed(String link)
-    {
-
-    }
-
-    public void htmlRendered()
-    {
-
-    }
-
-    public void formSubmitted(Map<String, String> props)
-    {
-
-    }
-
-    public void comboItemChanged(String componentId, String newValue)
-    {
-
-    }
-
-    public void textFieldChanged(String compId, String text)
-    {
-
-    }
-
-    public void checkBoxChanged(String compID, boolean selected)
     {
 
     }

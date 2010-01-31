@@ -1,7 +1,5 @@
 package novello.wordhandling;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 /**
@@ -20,7 +18,7 @@ public class DictionaryTest extends TestCase
 
     public void testAdd()
     {
-        Dictionary dict = new Dictionary();
+        DictionaryImpl dict = new DictionaryImpl();
         String words = "these,are,some,common,there,words,i,wish,it,was,easy,philistine,this,the,to,tim,that,that's";
         dict.addWords(words.split(","));
 

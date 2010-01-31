@@ -8,6 +8,8 @@
 package novello;
 
 import com.xapp.objectmodelling.annotations.TreeMeta;
+import com.xapp.application.annotations.EditorWidget;
+import com.xapp.application.editor.widgets.FreeTextPropertyWidget;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -16,6 +18,11 @@ public class Book
 {
     private Section m_section = new Section("workspace");
     private List<String> m_localDictionary = new ArrayList<String>();
+    private String m_styleSheet = "p {\n" +
+                "color:#222222;  " +
+                "line-height: 200%;\n" +
+                "font-family:Tahoma, sans-serif;" +
+                "}";
 
     @TreeMeta(leafTypes = {Section.class, Content.class})
     public Section getSection()
@@ -36,6 +43,17 @@ public class Book
     public void setSection(Section section)
     {
         m_section = section;
+    }
+
+    @EditorWidget(FreeTextPropertyWidget.class)
+    public String getStyleSheet()
+    {
+        return m_styleSheet;
+    }
+
+    public void setStyleSheet(String styleSheet)
+    {
+        m_styleSheet = styleSheet;
     }
 
     @Override

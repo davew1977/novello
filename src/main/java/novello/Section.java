@@ -13,6 +13,8 @@ import com.xapp.marshalling.annotations.FormattedText;
 import com.xapp.objectmodelling.tree.Tree;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * "Sections" mark the structure of the document. Any text entered here is metadata
@@ -21,6 +23,7 @@ public class Section extends Tree
 {
     private String m_text;
     private boolean m_excluded;
+    private String m_customLiveTemplates;
 
     public Section(String s)
     {
@@ -31,7 +34,6 @@ public class Section extends Tree
     {
     }
 
-    @FormattedText
     @EditorWidget(FreeTextPropertyWidget.class)
     public String getText()
     {
@@ -42,6 +44,19 @@ public class Section extends Tree
     {
         m_text = text;
     }
+
+    @EditorWidget(FreeTextPropertyWidget.class)
+    public String getCustomLiveTemplates()
+    {
+        return m_customLiveTemplates;
+    }
+
+    public void setCustomLiveTemplates(String customLiveTemplates)
+    {
+        m_customLiveTemplates = customLiveTemplates;
+    }
+
+
 
     public int wordcount()
     {
@@ -67,5 +82,29 @@ public class Section extends Tree
     public boolean isExcluded()
     {
         return m_excluded;
+    }
+
+    public Section parent()
+    {
+        return (Section) getParent();
+    }
+
+    public Map<String,String> resolveCustomLiveTemplates()
+    {
+        Map<String,String> liveTemplates = new HashMap<String, String>();
+        if(!isRoot())
+        {
+            liveTemplates.putAll(parent().resolveCustomLiveTemplates());
+        }
+        if(getCustomLiveTemplates()!=null)
+        {
+            String[] lines = getCustomLiveTemplates().split("\n");
+            for (String line : lines)
+            {
+                String[] args = line.split(":", 2);
+                liveTemplates.put(args[0], args[1]);
+            }
+        }
+        return liveTemplates;
     }
 }
