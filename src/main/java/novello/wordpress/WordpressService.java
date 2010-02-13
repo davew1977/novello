@@ -19,20 +19,16 @@ import java.util.Map;
 
 public class WordpressService
 {
-    private String m_username;
-    private String m_password;
-    private String m_blogURL;
+    private Account m_account;
 
-    public WordpressService(String username, String password, String blogURL)
+    public WordpressService(Account account)
     {
-        m_username = username;
-        m_password = password;
-        m_blogURL = blogURL;
+        m_account = account;
     }
 
     public List<Blog> getUserBlogs()
     {
-        Object[] blogdata = call("wp.getUsersBlogs", m_username, m_password);
+        Object[] blogdata = call("wp.getUsersBlogs", u(), p());
         ArrayList<Blog> blogs = new ArrayList<Blog>();
         for (Object o : blogdata)
         {
@@ -45,12 +41,33 @@ public class WordpressService
         return blogs;
     }
 
+    private String p()
+    {
+        return m_account.getPassword();
+    }
+
+    private String u()
+    {
+        return m_account.getUsername();
+    }
+
+    public void listPages()
+    {
+        Object[] list = call("wp.getPageList", "10186004", u(), p());
+
+        for (int i = 0; i < list.length; i++)
+        {
+            Object o = list[i];
+            System.out.println(o);
+        }
+    }
+
     private <T> T call(String method, String... params)
     {
         try
         {
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            String url = String.format("%s/xmlrpc.php", m_blogURL);
+            String url = String.format("%s/xmlrpc.php", m_account.getBlogURL());
             config.setServerURL(new URL(url));
             XmlRpcClient client = new XmlRpcClient();
             client.setConfig(config);
@@ -68,8 +85,9 @@ public class WordpressService
 
     public static void main(String[] args) throws MalformedURLException, XmlRpcException
     {
-        WordpressService w = new WordpressService("davew1977", "findus5", "http://davew1977.wordpress.com");
+        WordpressService w = new WordpressService(new Account("davew1977", "findus5", "http://davew1977.wordpress.com"));
         List<Blog> userBlogs = w.getUserBlogs();
         System.out.println(userBlogs);
+        w.listPages();
     }
 }

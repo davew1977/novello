@@ -14,6 +14,8 @@ import com.xapp.application.editor.widgets.FreeTextPropertyWidget;
 import java.util.List;
 import java.util.ArrayList;
 
+import novello.wordpress.Account;
+
 public class Book
 {
     private Section m_section = new Section("workspace");
@@ -23,11 +25,23 @@ public class Book
                 "line-height: 200%;\n" +
                 "font-family:Tahoma, sans-serif;" +
                 "}";
+    private List<Account> m_bloggerAccounts;
+
 
     @TreeMeta(leafTypes = {Section.class, Content.class})
     public Section getSection()
     {
         return m_section;
+    }
+
+    public List<Account> getBloggerAccounts()
+    {
+        return m_bloggerAccounts;
+    }
+
+    public void setBloggerAccounts(List<Account> bloggerAccounts)
+    {
+        m_bloggerAccounts = bloggerAccounts;
     }
 
     public List<String> getLocalDictionary()

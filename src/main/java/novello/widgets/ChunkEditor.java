@@ -372,19 +372,21 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     {
         private String m_word;
         private TextEditor.Line m_line;
+        private int m_removeStart;
+        private int m_removeLength;
 
-
-        public WikipediaAction(String wordToLookup, TextEditor.Line line)
+        public WikipediaAction(String wordToLookup, TextEditor.Line line, int removeStart, int removeLength)
         {
             super("Lookup: " + wordToLookup, NovelloTreeGraphics.WIKIPEDIA_ICON);
             m_word = wordToLookup;
             m_line = line;
+            m_removeStart = removeStart;
+            m_removeLength = removeLength;
         }
 
         public void actionPerformed(ActionEvent e)
         {
             WikipediaResponse response = m_wikipediaService.lookup(m_word.trim());
-            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition());
             final JList list = new JList(new Vector<Object>(response.getQueryResult().getItems()));
             list.setCellRenderer(new DefaultListCellRenderer()
             {
@@ -432,9 +434,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     {
                         String link = m_wikipediaService.link((ResultItem) list.getSelectedValue());
                         String insert = String.format("<a href=\"%s\">%s</a>", link, m_word);
-                        int index = m_line.caretIndexInDoc() - m_line.wordToCaret().length();
-                        m_textEditor.remove(index, m_word.length());
-                        m_textEditor.insert(index, insert);
+                        m_textEditor.remove(m_removeStart, m_removeLength);
+                        m_textEditor.insert(m_removeStart, insert);
                         f.setVisible(false);
                     }
                 }
@@ -472,8 +473,11 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
             }
             String wordToLookup = m_textEditor.getSelectedText();
+            int removeStart = wordToLookup!=null ? m_textEditor.getSelectionStart() : m_textEditor.wordAtCaretStart();
+            int removeEnd= wordToLookup!=null ? m_textEditor.getSelectionEnd() : m_textEditor.wordAtCaretEnd();
+            int removeLength = removeEnd-removeStart;
             wordToLookup = wordToLookup != null ? wordToLookup : word;
-            m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup, line));
+            m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup, line, removeStart, removeLength));
             textEditor.showPopUp();
         }
     }
