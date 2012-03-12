@@ -111,7 +111,17 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setBold(start, length);
                             setForegroundColor(start, length, DARKGREEN);
                         }
-
+                        matcher = WORD_FOR_SPELLCHECK.matcher(line.m_text);
+                        while (matcher.find())
+                        {
+                            if (!m_dictCache.wordOk(matcher.group()))
+                            {
+                                int start = line.m_startIndex + matcher.start();
+                                int length = matcher.group().length();
+                                setForegroundColor(start, length, Color.RED);
+                            }
+                        }
+                        //following will not be spell checked
                         matcher = html.matcher(line.m_text);
                         while (matcher.find())
                         {
@@ -129,16 +139,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setForegroundColor(start, length, Color.GRAY);
                             setBold(start, length, false);
                             setItalic(start, length);
-                        }
-                        matcher = WORD_FOR_SPELLCHECK.matcher(line.m_text);
-                        while (matcher.find())
-                        {
-                            if (!m_dictCache.wordOk(matcher.group()))
-                            {
-                                int start = line.m_startIndex + matcher.start();
-                                int length = matcher.group().length();
-                                setForegroundColor(start, length, Color.RED);
-                            }
                         }
                     }
                 }

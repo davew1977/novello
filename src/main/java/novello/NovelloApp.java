@@ -83,7 +83,7 @@ public class NovelloApp extends SimpleApplication<Book>
         m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
         m_appContainer.getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
         m_appContainer.getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
-        m_appContainer.getToolBar().add(m_wordpressAction).setToolTipText("interact with wordpress account");
+        //m_appContainer.getToolBar().add(m_wordpressAction).setToolTipText("interact with wordpress account");
         updateViewState();
 
         if (isSVNMode())

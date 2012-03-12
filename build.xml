@@ -1,73 +1,9 @@
 <project name="novello" basedir="." default="all">
 
-    <!-- Basic properties are read from property files -->
-    <property file="version.properties"/>
-    <property file="local.properties"/>
-    <!-- This file is not meant to be in Version Control, it's for local developer properties -->
     <property file="build.properties"/>
-    <property file="${buildenv.dir}/cobuto/build.properties"/>
 
     <!-- Define the DSTAMP, TSTAMP and TODAY properties -->
     <tstamp/>
-
-    <!--
-    ***************************************************************************************
-    ** Imported global build macros
-    ***************************************************************************************
-    -->
-    <import file="${buildenv.dir}/cobuto/jar-import.xml"/>
-    <import file="${buildenv.dir}/cobuto/continuous-build.xml"/>
-    <import file="${buildenv.dir}/cobuto/macros/subversion.xml"/>
-    <import file="${buildenv.dir}/cobuto/macros/junit.xml"/>
-    <import file="${buildenv.dir}/cobuto/macros/compile.xml"/>
-
-
-    <!-- TARGETS -->
-
-    <!--
-    ***************************************************************************************
-    ** Makes all
-    ***************************************************************************************
-    -->
-    <!--
-    Build aggregate targets like these, who rely on the targets from the Cobuto include files.
-    As long as you're using defaults, that's all that's needed. For customization, your targets may
-    need to include some custom targets and/or functionality in old Ant-style, but you'll still be able to use
-    Cobuto's Ant-targets and macros.
-    -->
-    <target name="all-no-test" depends="t_info, t_clean, t_init, t_resolve, t_compile, t_jar"
-            description="Builds the whole produc"/>
-
-    <target name="all" depends="all-no-test, test-compile, junit-test-run"
-            description="Builds the whole product and runs unit tests.
-    		To view test errors and failures, check _DIST/reports/unittest/junit-noframes.html"/>
-
-    <target name="release" depends="t_release" description="Releases this artifact"/>
-
-    <target name="publish" depends="all-no-test,t_ivy-configure,t_ivy-publish"/>
-
-    <target name="test-compile">
-        <m_test-compile test.resources.dir="${src.test.dir}"/>
-    </target>
-
-    <!--
-    ***************************************************************************************
-    ** This target will be run by the continuous integration
-    ***************************************************************************************
-    -->
-    <target name="continuous-build"
-            depends="t_info, t_clean, t_init, t_resolve, t_compile, t_jar,
-    				t_javadoc,
-    				test-compile, t_coverage-init,t_coverage-instrument, junit-test-run, t_coverage-report"/>
-
-    <target name="junit-test-run">
-        <!-- Run JUnit tests, create test report and decide whether or not to fail build -->
-        <!-- excluding svn facade test because it changes our svn user to windev -->
-        <m_test-run excludes="**/SVNFacadeTest.class"/>
-        <m_test-report/>
-        <m_test-fail/>
-    </target>
-
 
     <target name="sign">
         <delete dir="_DIST/signed"/>
@@ -99,27 +35,34 @@
             <fileset dir="_DIST/signed"/>
         </scp>
     </target>
+    <target name="prepare-jars">
+        <copy file="target/novello-1.0.0-SNAPSHOT.jar" tofile="target/novello.jar"/>
+        <copy file="C:/Users/davidw/.m2/repository/com/xapp/xapp/1.0.0-SNAPSHOT/xapp-1.0.0-SNAPSHOT.jar" tofile="target/xapp.jar"/>
 
-    <target name="quick-deploy" description="just recompiles, jars and copies novello" depends="t_compile,t_jar">
-        <delete dir="_DIST/signed"/>
-        <mkdir dir="_DIST/signed"/>
-        <signjar destdir="_DIST/signed"
+    </target>
+
+    <target name="quick-deploy" description="just recompiles, jars and copies novello" depends="prepare-jars">
+        <delete dir="target/signed"/>
+        <mkdir dir="target/signed"/>
+        <signjar destdir="target/signed"
                  keystore="${basedir}/keystore/keystore"
                  alias="keystore"
                  storepass="QQ11WW22"
                  keypass="QQ11WW22">
             <path>
-                <fileset dir="_DIST" includes="novello.jar"/>
+                <fileset dir="target">
+                    <include name="novello.jar"/>
+                    <include name="xapp.jar"/>
+                </fileset>
             </path>
         </signjar>
 
         <scp todir="davew1977,novello:${password}@web.sourceforge.net:/home/groups/n/no/novello/htdocs/webstart" trust="true">
-            <fileset dir="_DIST/signed"/>
+            <fileset dir="target/signed"/>
             <fileset dir="web">
                 <include name="novello.jnlp"/>
             </fileset>
         </scp>
     </target>
 
-    <target name="deploy" depends="t_compile,t_jar, scp" description="Does everything, resolve, signing, scp..."/>
 </project>
