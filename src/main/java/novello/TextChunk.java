@@ -38,10 +38,5 @@ public class TextChunk
 
     public static void main(String[] args)
     {
-        char c = '“';
-        System.out.println(c);
-        System.out.println(Integer.toHexString(c));
-        System.out.println(Integer.toHexString('”'));
-        System.out.println(Integer.toHexString('a'));
     }
 }

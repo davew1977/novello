@@ -28,7 +28,7 @@ public class AboutPane extends JPanel
     public AboutPane()
     {
         HTML html = new HTMLImpl();
-        html.append("Novello © 2009 David Webber<br>");
+        html.append("Novello copyright 2009 David Webber<br>");
         html.append("This project is open source.<br>");
         html.link("http://novello.sourceforge.net", "http://novello.sourceforge.net");
         html.append("<br>If you like Novello you can donate, <br>contribute with code, or buy my book, \"Oom\"");

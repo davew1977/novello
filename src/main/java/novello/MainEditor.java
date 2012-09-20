@@ -6,6 +6,7 @@
  */
 package novello;
 
+import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
 import novello.wordhandling.DictFileHandler;
@@ -22,15 +23,10 @@ import java.awt.event.AdjustmentListener;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
-import org.xhtmlrenderer.swing.SelectionHighlighter;
-
 public class MainEditor extends JSplitPane
 {
     NovelloApp m_novelloApp;
-    XHTMLPanel m_htmlRenderer;
+    BrowserView m_htmlRenderer;
     ChunkEditor m_chunkEditor;
     private TextChunk m_chunk = new TextChunk();
     private Content m_parentContent;
@@ -42,14 +38,12 @@ public class MainEditor extends JSplitPane
     {
         super(VERTICAL_SPLIT);
         m_novelloApp = novelloApp;
-        m_htmlRenderer = new XHTMLPanel();
-        SelectionHighlighter s = new SelectionHighlighter();
-        s.install(m_htmlRenderer);
+        m_htmlRenderer = new BrowserView();
         m_chunkEditor = new ChunkEditor();
         m_chunkEditor.setNovelloApp(m_novelloApp);
         m_chunkEditor.setMainEditor(this);
 
-        m_jsp1 = new FSScrollPane(m_htmlRenderer);
+        m_jsp1 = new JScrollPane(m_htmlRenderer);
         m_jsp1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         m_jsp1.setPreferredSize(new Dimension(300, 400));
 
@@ -109,7 +103,7 @@ public class MainEditor extends JSplitPane
         html.setStyle(m_novelloApp.getBook().getStyleSheet());
         html.p(m_chunk.getText());
         int value = m_jsp2.getVerticalScrollBar().getValue();
-        m_htmlRenderer.setDocumentFromString(html.htmlDoc(), null, new XhtmlNamespaceHandler());
+        m_htmlRenderer.setHTML(html);
         m_jsp2.getVerticalScrollBar().setValue(value);
     }
 
