@@ -5,11 +5,6 @@ import com.xapp.objectmodelling.annotations.TreeMeta;
 import com.xapp.objectmodelling.tree.Tree;
 
 /**
- * Created with IntelliJ IDEA.
- * User: davidw
- * Date: 9/20/12
- * Time: 8:42 PM
- * To change this template use File | Settings | File Templates.
  */
 public class Backlog
 {
@@ -30,10 +25,5 @@ public class Backlog
     public void setWork(Tree work)
     {
         this.work = work;
-    }
-
-    public static void main(String[] args)
-    {
-        Launcher.run(Backlog.class, "backlog.xml");
     }
 }

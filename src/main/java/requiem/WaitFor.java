@@ -5,4 +5,7 @@ package requiem;
  */
 public class WaitFor extends WorkItem
 {
+    public WaitFor() {
+        setStatus(WorkItemState.STALLED);
+    }
 }

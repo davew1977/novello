@@ -17,8 +17,6 @@ import java.util.List;
  * Created with IntelliJ IDEA.
  * User: davidw
  * Date: 9/20/12
- * Time: 7:26 PM
- * To change this template use File | Settings | File Templates.
  */
 @ValidImplementations({Task.class, WaitFor.class, Folder.class})
 public class WorkItem extends Tree
@@ -28,6 +26,10 @@ public class WorkItem extends Tree
     private Date dueDate;
     private List<WorkItem> dependencies = new ArrayList<WorkItem>();
     private WorkItemState status;
+
+    public WorkItem() {
+        setStatus(WorkItemState.TODO);
+    }
 
     @Reference
     public WorkItem getDependency()
@@ -100,5 +102,9 @@ public class WorkItem extends Tree
     public void setDependencies(List<WorkItem> dependencies)
     {
         this.dependencies = dependencies;
+    }
+
+    public List<WorkItem> children() {
+        return (List) getChildren();
     }
 }
