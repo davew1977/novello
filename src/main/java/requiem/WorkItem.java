@@ -1,12 +1,15 @@
 package requiem;
 
 import com.xapp.application.annotations.EditorWidget;
+import com.xapp.application.annotations.Hide;
 import com.xapp.application.annotations.Mandatory;
 import com.xapp.marshalling.annotations.FormattedText;
 import com.xapp.objectmodelling.annotations.ContainsReferences;
 import com.xapp.objectmodelling.annotations.Reference;
 import com.xapp.objectmodelling.annotations.ValidImplementations;
 import com.xapp.objectmodelling.tree.Tree;
+import novello.Text;
+import novello.TextHolder;
 import novello.widgets.ChunkEditor;
 
 import java.util.ArrayList;
@@ -19,7 +22,7 @@ import java.util.List;
  * Date: 9/20/12
  */
 @ValidImplementations({Task.class, WaitFor.class, Folder.class})
-public class WorkItem extends Tree
+public class WorkItem extends Tree implements Text, TextHolder
 {
     private String content;
     private int size;
@@ -93,7 +96,7 @@ public class WorkItem extends Tree
         this.status = status;
     }
 
-    @ContainsReferences
+    /*@ContainsReferences
     public List<WorkItem> getDependencies()
     {
         return dependencies;
@@ -102,9 +105,24 @@ public class WorkItem extends Tree
     public void setDependencies(List<WorkItem> dependencies)
     {
         this.dependencies = dependencies;
-    }
+    }*/
 
     public List<WorkItem> children() {
         return (List) getChildren();
+    }
+
+    @Override
+    public String text() {
+        return getContent();
+    }
+
+    @Override
+    public Text content() {
+        return this;
+    }
+
+    @Override
+    public void setText(String pValue) {
+        setContent(pValue);
     }
 }

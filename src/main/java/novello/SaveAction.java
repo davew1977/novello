@@ -12,13 +12,13 @@ import java.awt.event.ActionEvent;
 class SaveAction extends AbstractAction
 {
     private MainEditor m_mainEditor;
-    private NovelloApp m_novelloApp;
+    private DocumentApplication documentApp;
 
-    public SaveAction(MainEditor mainEditor, NovelloApp novelloApp)
+    public SaveAction(MainEditor mainEditor, DocumentApplication docApp)
     {
         super("Save", NovelloTreeGraphics.SAVE_ICON);
         m_mainEditor = mainEditor;
-        m_novelloApp = novelloApp;
+        documentApp = docApp;
     }
 
     public void actionPerformed(ActionEvent e)
@@ -30,6 +30,6 @@ class SaveAction extends AbstractAction
     {
         m_mainEditor.store();
         m_mainEditor.render();
-        m_novelloApp.getAppContainer().save();
+        documentApp.getAppContainer().save();
     }
 }

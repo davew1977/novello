@@ -11,6 +11,7 @@ import com.xapp.application.api.ApplicationContainer;
 import com.xapp.application.api.Command;
 import com.xapp.application.api.Node;
 import com.xapp.application.api.NodeCommand;
+import com.xapp.application.api.SimpleApplication;
 import com.xapp.application.api.SpecialTreeGraphics;
 import com.xapp.application.utils.SwingUtils;
 import com.xapp.application.utils.html.BrowserView;
@@ -22,9 +23,11 @@ import com.xapp.objectmodelling.core.PropertyChangeTuple;
 import com.xapp.objectmodelling.tree.Tree;
 import com.xapp.objectmodelling.tree.TreeNode;
 import com.xapp.utils.svn.SVNFacade;
+import com.xapp.utils.svn.UpdateResult;
 import novello.help.AboutPane;
 import novello.help.ReferenceCard;
 import novello.wordhandling.DictionaryType;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,42 +39,57 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class NovelloApp extends DocumentApp<Book> implements DocumentApplication {
-    private ClassDatabase<Book> m_classDatabase;
-    private WordpressAction m_wordpressAction = new WordpressAction();
-    private BrowserView m_browserView;
+public abstract class SvnApp<T> extends SimpleApplication<T> implements DocumentApplication {
+    private AppData m_appData;
+    private SaveAction m_saveAction;
+    private UpdateAction m_updateAction = new UpdateAction();
+    private CommitAction m_commitAction = new CommitAction();
+    private RevertAction m_revertAction = new RevertAction();
+    private SVNFacade m_svnFacade;
+    //private Executor m_extraThread = Executors.newFixedThreadPool(1);
+    //private BrowserView m_browserView;
 
-    public NovelloApp(SVNFacade svnFacade)
+    public SvnApp(SVNFacade svnFacade)
     {
-        super(svnFacade);
+        m_svnFacade = svnFacade;
     }
 
     @Override
-    public void init(ApplicationContainer<Book> applicationContainer)
+    public void init(ApplicationContainer<T> applicationContainer)
     {
         super.init(applicationContainer);
-        m_browserView = new BrowserView();
-        m_classDatabase = m_appContainer.getGuiContext().getClassDatabase();
-        createHelpMenu();
 
+        setupToolbar();
     }
 
-    private void createHelpMenu()
+    protected void setupToolbar()
     {
-        JMenu help = new JMenu("Help");
-        JMenuItem about = new JMenuItem(new AboutAction());
-        JMenuItem referenceCard = new JMenuItem(new ReferenceCardAction());
-        help.add(about);
-        help.add(referenceCard);
-        SwingUtils.setFont(help);
-        m_appContainer.getMenuBar().add(help);
+        m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
+        m_appContainer.getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
+        m_appContainer.getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
+        updateViewState();
+
+        if (isSVNMode())
+        {
+            m_appContainer.addBeforeHook(DefaultAction.QUIT, new ExitCommitHook());
+            Box b = Box.createHorizontalBox();
+            b.add(Box.createHorizontalStrut(10));
+            b.add(new JLabel("user: " + m_svnFacade.getUsername()));
+            SwingUtils.setFont(b);
+            m_appContainer.getToolBar().add(b);
+        }
     }
 
-    private void setHtml(HTML html)
+    private void updateViewState()
     {
-        html.setStyle(getBook().getStyleSheet());
-        String content = html.htmlDoc();
-        m_browserView.setHTML(content);
+        m_commitAction.setEnabled(isSVNMode());
+        m_revertAction.setEnabled(isSVNMode());
+        m_updateAction.setEnabled(isSVNMode());
+    }
+
+    private boolean isSVNMode()
+    {
+        return m_svnFacade != null;
     }
 
     public SpecialTreeGraphics createSpecialTreeGraphics()
@@ -86,10 +104,8 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         if (node.wrappedObject() instanceof Content)
         {
             commands.add(new EditLatestCommand());
-            commands.add(new NodeCommand("Set grade to 75", "sets the grade to 75", "ctrl G")
-            {
-                public void execute(Node params)
-                {
+            commands.add(new NodeCommand("Set grade to 75", "sets the grade to 75", "ctrl G") {
+                public void execute(Node params) {
                     Content content = (Content) params.wrappedObject();
                     content.setGrade(75);
                 }
@@ -99,67 +115,9 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         return commands;
     }
 
-    @Override
-    public void nodeSelected(final Node node)
+    private void doSplit(TextChunk textChunk, Node node)
     {
-        super.nodeSelected(node);
-        //html.size(3).font("Dialog");
-
-        if (node.wrappedObject() instanceof Section)
-        {
-            HTML html = new HTMLImpl();
-            Section section = (Section) node.wrappedObject();
-            html.p("word count: " + section.wordcount());
-            render(html, section, true);
-            setHtml(html);
-            m_appContainer.setUserPanel(m_browserView, false);
-        }
-
-
-    }
-
-    @Override
-    public TextHolder getTextHolder(Text text) {
-        Node node = m_appContainer.getNode(text);
-        return node.getParent().getParent().wrappedObject();
-    }
-
-    public void nodeUpdated(Node node, Map<String, PropertyChangeTuple> changes)
-    {
-        if (node.wrappedObject() instanceof TextChunk)
-        {
-            doSplit((TextChunk) node.wrappedObject(), node);
-            nodeSelected(node);
-        }
-    }
-
-    @Override
-    public void nodeAdded(Node node)
-    {
-        if (node.wrappedObject() instanceof Text)
-        {
-            doSplit(node.<Text>wrappedObject(), node);
-        }
-    }
-
-    public void doSplit(Text chunk)
-    {
-        doSplit(chunk, m_appContainer.getNode(chunk));
-    }
-
-    @Override
-    public Object step(Direction pType, TextHolder pParentContent) {
-        return getBook().step(pType, (Content) pParentContent);
-    }
-
-    @Override
-    public TextHolder stepCircular(Direction pType, TextHolder textHolder) {
-        return getBook().stepCircular(pType, (Content) textHolder);
-    }
-
-    private void doSplit(Text textChunk, Node node)
-    {
-        String[] chunks = textChunk.text().split("-->split");
+        String[] chunks = textChunk.getText().split("-->split");
         if (chunks.length > 1)
         {
             Content content = (Content) node.getParent().getParent().wrappedObject();
@@ -176,10 +134,10 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
                     name = s[0];
                     chunk = s[1];
                 }
-                Content newContent = (Content) m_classDatabase.newInstance(Content.class);
+                Content newContent = (Content) classDatabase().newInstance(Content.class);
                 newContent.setName(name);
                 newContent.setParent(content.getParent());
-                TextChunk newTextChunk = (TextChunk) m_classDatabase.newInstance(TextChunk.class);
+                TextChunk newTextChunk = (TextChunk) classDatabase().newInstance(TextChunk.class);
                 newTextChunk.setText(chunk);
                 newContent.getVersions().add(newTextChunk);
                 contentList.add(index + i, newContent);
@@ -187,6 +145,10 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             m_appContainer.refreshNode(m_appContainer.getNode(content.getParent()));
             m_appContainer.expand(textChunk);
         }
+    }
+
+    protected ClassDatabase<T> classDatabase() {
+        return m_appContainer.getGuiContext().getClassDatabase();
     }
 
     @Override
@@ -262,21 +224,13 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         return html;
     }
 
-    public void linkPressed(String link)
+    public ApplicationContainer getAppContainer()
     {
-
+        return m_appContainer;
     }
-
-
-    public Book getBook()
-    {
-        return m_appContainer.getGuiContext().getInstance();
-    }
-
-
     @Override
-    public Section getDocTree() {
-        return getBook().getSection();
+    public void setStatusMessage(String message) {
+        getAppContainer().setStatusMessage(message);
     }
 
     @Override
@@ -299,9 +253,116 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
 
     }
 
+    private class CommitAction extends AbstractAction
+    {
+        private CommitAction()
+        {
+            super("Commit", NovelloTreeGraphics.COMMIT_ICON);
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to send your changes to the server?"))
+            {
+                commit();
+            }
+        }
+    }
+
+    private class RevertAction extends AbstractAction
+    {
+        private RevertAction()
+        {
+            super("Revert", NovelloTreeGraphics.REVERT_ICON);
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
+            {
+                m_svnFacade.revert(currentFilePath());
+
+                reloadFile();
+            }
+        }
+
+    }
+
+
+    private class UpdateAction extends AbstractAction
+    {
+        private UpdateAction()
+        {
+            super("Update", NovelloTreeGraphics.UPDATE_ICON);
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            m_saveAction.save();
+            UpdateResult result = m_svnFacade.update(currentFilePath());
+            if (result.isConflict())
+            {
+                SwingUtils.warnUser(m_appContainer.getMainFrame(), "You have a conflict. You should close Novello and fix it manually\n" +
+                        "You can revert the file, but then you will lose your changes");
+            }
+            else
+            {
+                reloadFile();
+            }
+        }
+    }
+
+    public void reloadFile() {
+        m_appContainer.disposeAndReload();
+    }
+
+    public String getCurrentUser()
+    {
+        return m_svnFacade!=null ? m_svnFacade.getUsername() : "";
+    }
+
     private String currentFilePath()
     {
         return m_appContainer.getGuiContext().getCurrentFile().getAbsolutePath();
+    }
+
+    private class ExitCommitHook implements ApplicationContainer.Hook
+    {
+        public void execute()
+        {
+            trySave();
+            int i = JOptionPane.showOptionDialog(m_appContainer.getMainFrame(),
+                    "Would you like to commit your changes?", "SVN Commit",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+            if (i == JOptionPane.YES_OPTION)
+            {
+                commit();
+            }
+        }
+
+    }
+
+    protected abstract void trySave();
+
+    private void commit()
+    {
+        m_saveAction.save();
+        try
+        {
+            NovelloLauncher.SVN_FACADE.commit(currentFilePath(), "changes");
+        }
+        catch (RuntimeException e)
+        {
+            if (e.getCause() instanceof SVNException)
+            {
+                SVNException svnException = (SVNException) e.getCause();
+                SwingUtils.warnUser(m_appContainer.getMainFrame(), svnException.getMessage());
+            }
+            else
+            {
+                throw e;
+            }
+        }
     }
 
     private class AboutAction extends AbstractAction

@@ -17,7 +17,7 @@ public class GotoAction extends AbstractAction
     Object m_subject;
     private MainEditor m_mainEditor;
 
-    public GotoAction(MainEditor mainEditor, Section section, String name)
+    public GotoAction(MainEditor mainEditor, Object section, String name)
     {
         super(name);
         m_mainEditor = mainEditor;
@@ -36,7 +36,7 @@ public class GotoAction extends AbstractAction
             if(section instanceof Content)
             {
                 Content content = (Content) section;
-                m_mainEditor.m_novelloApp.getAppContainer().expand(content);
+                m_mainEditor.mDocumentApplication.expand(content);
             }
             else
             {

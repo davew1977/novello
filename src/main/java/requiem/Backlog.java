@@ -3,11 +3,15 @@ package requiem;
 import com.xapp.application.api.Launcher;
 import com.xapp.objectmodelling.annotations.TreeMeta;
 import com.xapp.objectmodelling.tree.Tree;
+import novello.Document;
+
+import java.util.List;
 
 /**
  */
-public class Backlog
+public class Backlog implements Document
 {
+    List<String> localDictionary;
     private Tree work = new Tree();
 
     public Backlog()
@@ -25,5 +29,18 @@ public class Backlog
     public void setWork(Tree work)
     {
         this.work = work;
+    }
+
+    @Override
+    public String getStyleSheet() {
+        return null;
+    }
+
+    public List<String> getLocalDictionary() {
+        return localDictionary;
+    }
+
+    public void setLocalDictionary(List<String> pLocalDictionary) {
+        localDictionary = pLocalDictionary;
     }
 }

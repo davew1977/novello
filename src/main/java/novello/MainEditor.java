@@ -10,7 +10,7 @@ import com.xapp.application.utils.html.BrowserView;
 import com.xapp.application.utils.html.HTML;
 import com.xapp.application.utils.html.HTMLImpl;
 import novello.wordhandling.DictFileHandler;
-import novello.wordhandling.DictionaryImpl;
+import novello.wordhandling.Dictionary;
 import novello.widgets.ChunkEditor;
 
 import javax.swing.*;
@@ -25,22 +25,22 @@ import java.util.regex.Matcher;
 
 public class MainEditor extends JSplitPane
 {
-    NovelloApp m_novelloApp;
+    DocumentApplication mDocumentApplication;
     BrowserView m_htmlRenderer;
     ChunkEditor m_chunkEditor;
-    private TextChunk m_chunk = new TextChunk();
-    private Content m_parentContent;
+    private Text m_chunk = new TextChunk();
+    private TextHolder parent;
     private Pattern WORD_COUNT_PATTERN = Pattern.compile("\\s+");
     private final JScrollPane m_jsp1;
     private final JScrollPane m_jsp2;
 
-    public MainEditor(NovelloApp novelloApp)
+    public MainEditor(DocumentApplication novelloApp)
     {
         super(VERTICAL_SPLIT);
-        m_novelloApp = novelloApp;
+        mDocumentApplication = novelloApp;
         m_htmlRenderer = new BrowserView();
         m_chunkEditor = new ChunkEditor();
-        m_chunkEditor.setNovelloApp(m_novelloApp);
+        m_chunkEditor.setNovelloApp(mDocumentApplication);
         m_chunkEditor.setMainEditor(this);
 
         m_jsp1 = new JScrollPane(m_htmlRenderer);
@@ -63,9 +63,8 @@ public class MainEditor extends JSplitPane
         m_jsp1.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
         m_jsp2.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
 
-        DictionaryImpl dictionary = DictFileHandler.loadDictionary("en_uk");
-        dictionary.addWords(m_novelloApp.getBook().getLocalDictionary());
-        m_chunkEditor.setDict(dictionary);
+        Dictionary dictionary = DictFileHandler.getDictionary();
+        dictionary.addWords(mDocumentApplication.getLocalDictionary());
 
         //word count updater
         m_chunkEditor.getTextEditor().getDoc().addDocumentListener(new DocumentListener()
@@ -87,21 +86,21 @@ public class MainEditor extends JSplitPane
         });
     }
 
-    public void setChunk(TextChunk textChunk, Content parentContent)
+    public void setChunk(Text textChunk)
     {
         store();
         m_chunk = textChunk;
-        m_parentContent = parentContent;
+        parent = mDocumentApplication.getTextHolder(textChunk);
         render();
-        m_chunkEditor.setValue(textChunk.getText(), parentContent);
+        m_chunkEditor.setValue(textChunk.text(), parent);
         updateWordCount();
     }
 
     public void render()
     {
         HTML html = new HTMLImpl();
-        html.setStyle(m_novelloApp.getBook().getStyleSheet());
-        html.p(m_chunk.getText());
+        html.setStyle(mDocumentApplication.getStyleSheet());
+        html.p(m_chunk.text());
         int value = m_jsp2.getVerticalScrollBar().getValue();
         m_htmlRenderer.setHTML(html);
         m_jsp2.getVerticalScrollBar().setValue(value);
@@ -113,7 +112,7 @@ public class MainEditor extends JSplitPane
         {
             String text = m_chunkEditor.getTextEditor().getText();
             int count = WORD_COUNT_PATTERN.split(text).length;
-            m_novelloApp.getAppContainer().setStatusMessage("word count: " + count);
+            mDocumentApplication.setStatusMessage("word count: " + count);
         }
     }
 
@@ -122,11 +121,11 @@ public class MainEditor extends JSplitPane
         if (m_chunk != null)
         {
             m_chunk.setText(m_chunkEditor.getValue());
-            if (m_novelloApp.shouldSplit(m_chunk))
+            if (mDocumentApplication.shouldSplit(m_chunk))
             {
-                TextChunk chunk = m_chunk;
+                Text chunk = m_chunk;
                 m_chunk = null;
-                m_novelloApp.doSplit(chunk);
+                mDocumentApplication.doSplit(chunk);
             }
         }
     }
@@ -143,7 +142,7 @@ public class MainEditor extends JSplitPane
 
         public void actionPerformed(ActionEvent e)
         {
-            m_novelloApp.getAppContainer().expand(m_novelloApp.getBook().step(m_type, m_parentContent));
+            mDocumentApplication.expand(mDocumentApplication.step(m_type, parent));
             m_chunkEditor.getTextEditor().requestFocus();
         }
     }
@@ -162,23 +161,23 @@ public class MainEditor extends JSplitPane
         public void actionPerformed(ActionEvent e)
         {
             store();
-            TextChunk startChunk = m_chunk;
-            TextChunk currentChunk = m_chunk;
-            Content currentContent = m_parentContent;
+            Text startChunk = m_chunk;
+            Text currentChunk = m_chunk;
+            TextHolder currentHolder = parent;
             boolean found = false;
             boolean stop = false;
             int cursor = m_chunkEditor.getTextEditor().getCaretPosition();
             while (!found && !stop)
             {
                 System.out.println(currentChunk);
-                Matcher m = m_findStrategy.getPattern().matcher(currentChunk.getText().substring(cursor));
+                Matcher m = m_findStrategy.getPattern().matcher(currentChunk.text().substring(cursor));
                 while (m.find())
                 {
                     if (m_findStrategy.accept(m.group()))
                     {
                         if (currentChunk != startChunk)
                         {
-                            m_novelloApp.getAppContainer().expand(currentChunk);
+                            mDocumentApplication.expand(currentChunk);
                         }
                         m_chunkEditor.getTextEditor().requestFocus();
                         int startPos = cursor + m.start();
@@ -192,8 +191,8 @@ public class MainEditor extends JSplitPane
                 }
                 if (!found)
                 {
-                    currentContent = m_novelloApp.getBook().stepCircular(m_type, currentContent);
-                    currentChunk = currentContent.latest();
+                    currentHolder = mDocumentApplication.stepCircular(m_type, currentHolder);
+                    currentChunk = currentHolder.content();
                     cursor = 0;
                 }
                 if (startChunk == currentChunk)
@@ -209,7 +208,7 @@ public class MainEditor extends JSplitPane
     {
         public void actionPerformed(ActionEvent e)
         {
-            m_novelloApp.getAppContainer().quit();
+            mDocumentApplication.quit();
         }
     }
 

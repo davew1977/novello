@@ -12,7 +12,7 @@ import com.xapp.application.annotations.EditorWidget;
 import com.xapp.marshalling.annotations.FormattedText;
 import novello.widgets.ChunkEditor;
 
-public class TextChunk
+public class TextChunk implements Text
 {
     private String m_text = "";
 
@@ -38,5 +38,10 @@ public class TextChunk
 
     public static void main(String[] args)
     {
+    }
+
+    @Override
+    public String text() {
+        return getText();
     }
 }

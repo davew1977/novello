@@ -6,6 +6,7 @@
  */
 package novello.wordhandling;
 
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -40,5 +41,25 @@ public class DictionaryCache implements Dictionary
     public void reset()
     {
         m_cache.clear();
+    }
+
+    @Override
+    public List<String> findWords(String wordStart, int maxHits) {
+        return m_dict.findWords(wordStart, maxHits);
+    }
+
+    @Override
+    public List<String> findWords(String wordStart) {
+        return m_dict.findWords(wordStart);
+    }
+
+    @Override
+    public void addWord(String word) {
+        m_dict.addWord(word);
+    }
+
+    @Override
+    public void addWords(List<String> word) {
+        m_dict.addWords(word);
     }
 }

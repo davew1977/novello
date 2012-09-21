@@ -102,4 +102,9 @@ public class DictionaryImpl implements Dictionary
             addWord(word);
         }
     }
+
+    @Override
+    public void reset() {
+
+    }
 }

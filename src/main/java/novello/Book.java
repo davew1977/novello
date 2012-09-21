@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 import novello.wordpress.Account;
 
-public class Book
+public class Book implements Document
 {
     private Section m_section = new Section("workspace");
     private List<String> m_localDictionary = new ArrayList<String>();

@@ -6,28 +6,19 @@
  */
 package novello;
 
-import com.xapp.objectmodelling.annotations.Reference;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.io.File;
-
-import novello.startup.BookFile;
-
 public class AppData
 {
-    private Content m_lastEdited;
+    private String lastSelected;
     private int m_dividerLocation;
 
-    @Reference
-    public Content getLastEdited()
+    public String getLastSelected()
     {
-        return m_lastEdited;
+        return lastSelected;
     }
 
-    public void setLastEdited(Content lastEdited)
+    public void setLastSelected(String lastEdited)
     {
-        m_lastEdited = lastEdited;
+        lastSelected = lastEdited;
     }
 
     public void setDividerLocation(int dividerLocation)

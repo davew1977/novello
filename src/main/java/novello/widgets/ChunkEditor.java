@@ -20,6 +20,7 @@ import novello.wikipedia.ResultItem;
 import novello.wikipedia.WikipediaResponse;
 import novello.wikipedia.WikipediaService;
 import novello.wordhandling.*;
+import novello.wordhandling.Dictionary;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,8 +39,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     private TextEditor m_textEditor;
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
-    public DictionaryImpl m_dict = new DictionaryImpl();
-    public DictionaryCache m_dictCache = new DictionaryCache(m_dict);
+    public Dictionary m_dict;
     private ThesaurusService m_thesaurus = new ThesaurusService();
     private WikipediaService m_wikipediaService = new WikipediaService();
     private UndoManager m_undoManager = new UndoManager();
@@ -52,13 +52,11 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public Pattern WORD = Pattern.compile("[\\w'\u2019]*");
     private UndoAction m_undoAction = new UndoAction();
     private RedoAction m_redoAction = new RedoAction();
-    private NovelloApp m_novelloApp;
+    private DocumentApplication mDocumentApplication;
     private MainEditor m_mainEditor;
 
-    public void setDict(DictionaryImpl dict)
-    {
-        m_dict = dict;
-        m_dictCache = new DictionaryCache(dict);
+    public ChunkEditor() {
+        m_dict = DictFileHandler.getDictionary();
     }
 
     public void setMainEditor(MainEditor mainEditor)
@@ -66,9 +64,9 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         m_mainEditor = mainEditor;
     }
 
-    public void setNovelloApp(NovelloApp novelloApp)
+    public void setNovelloApp(DocumentApplication pDocumentApplication)
     {
-        m_novelloApp = novelloApp;
+        this.mDocumentApplication = pDocumentApplication;
     }
 
     public void setEditable(boolean editable)
@@ -114,7 +112,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                         matcher = WORD_FOR_SPELLCHECK.matcher(line.m_text);
                         while (matcher.find())
                         {
-                            if (!m_dictCache.wordOk(matcher.group()))
+                            if (!m_dict.wordOk(matcher.group()))
                             {
                                 int start = line.m_startIndex + matcher.start();
                                 int length = matcher.group().length();
@@ -199,7 +197,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     public void setValue(String value, Object target)
     {
-        m_dictCache.reset();
+        m_dict.reset();
         m_undoManager.disable();
         m_undoManager.init();
         getTextEditor().setText(value);
@@ -257,11 +255,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
     public static void main(String[] args)
     {
-        DictionaryImpl dictionary = DictFileHandler.loadDictionary("en_uk");
+        Dictionary dictionary = DictFileHandler.getDictionary();
         TextChunk chunk = new TextChunk();
         chunk.setText("this is a text chunk\nthis is another line\nthis is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line this is a really long line ");
         ChunkEditor chunkEditor = new ChunkEditor();
-        chunkEditor.setDict(dictionary);
         chunkEditor.setNovelloApp(new NovelloApp(null));
         chunkEditor.setValue(chunk.getText(), null);
         SwingUtils.showInFrame(chunkEditor.getComponent());
@@ -342,7 +339,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             getTextEditor().setText(m_textEditor.getText());
             getTextEditor().setCaretPosition(caret);
             m_textEditor.handleNewText(-1, null, null, Arrays.asList(m_line));
-            m_novelloApp.addWordToDict(m_dictType, m_word);
+            mDocumentApplication.addWordToDict(m_dictType, m_word);
         }
     }
 
@@ -351,17 +348,17 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
         public void selectionChanged(String item)
         {
-            if (m_novelloApp != null)
+            if (mDocumentApplication != null)
             {
-                m_novelloApp.getAppContainer().setStatusMessage(item);
+                mDocumentApplication.setStatusMessage(item);
             }
         }
 
         public void comboRemoved()
         {
-            if (m_novelloApp != null)
+            if (mDocumentApplication != null)
             {
-                m_novelloApp.getAppContainer().setStatusMessage("");
+                mDocumentApplication.setStatusMessage("");
             }
         }
     }
@@ -463,12 +460,12 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
                 if (m_mainEditor != null)
                 {
-                    textEditor.addPopUpAction(new GotoAction(m_mainEditor, m_novelloApp.getBook().getSection(), "goto"));
+                    textEditor.addPopUpAction(new GotoAction(m_mainEditor, mDocumentApplication.getDocTree(), "goto"));
                     textEditor.addInsertAction("make split", "-->split");
                 }
 
 
-                String username = m_novelloApp.getCurrentUser();
+                String username = mDocumentApplication.getCurrentUser();
                 String ts = SimpleDateFormat.getDateInstance().format(System.currentTimeMillis());
                 textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
             }

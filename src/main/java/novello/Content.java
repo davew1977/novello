@@ -16,7 +16,7 @@ import java.util.ArrayList;
 /**
  * Contents are nodes that contain real text for the document
  */
-public class Content extends Section
+public class Content extends Section implements TextHolder
 {
     private List<TextChunk> m_versions = new ArrayList<TextChunk>();
     private int m_grade;
@@ -64,5 +64,10 @@ public class Content extends Section
     public TextChunk latest()
     {
         return m_versions.get(m_versions.size()-1);
+    }
+
+    @Override
+    public Text content() {
+        return latest();
     }
 }

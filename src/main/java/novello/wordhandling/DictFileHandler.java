@@ -20,6 +20,8 @@ import novello.NovelloLauncher;
 
 public class DictFileHandler
 {
+    private static Dictionary instance;
+
     public static DictionaryImpl loadFromClasspath(String url)
     {
         File f;
@@ -65,16 +67,20 @@ public class DictFileHandler
         System.out.println("words = " + words);
     }
 
-    public static DictionaryImpl loadDictionary(String language)
+    public static Dictionary getDictionary()
     {
-        //hardcode british english
-        File cache = new File(NovelloLauncher.HOME_DIR, "_NOVELLO_CACHE");
-        File f = new File(cache, "british.zip");
-        if (!f.exists())
+        if(instance == null)
         {
-            cache.mkdirs();
-            FileUtils.downloadFile(f, "http://novello.sourceforge.net/webstart/dictionaries/british.zip");
+            //hardcode british english
+            File cache = new File(NovelloLauncher.HOME_DIR, "_NOVELLO_CACHE");
+            File f = new File(cache, "british.zip");
+            if (!f.exists())
+            {
+                cache.mkdirs();
+                FileUtils.downloadFile(f, "http://novello.sourceforge.net/webstart/dictionaries/british.zip");
+            }
+            instance =  new DictionaryCache(load(f));
         }
-        return load(f);
+        return instance;
     }
 }
