@@ -40,8 +40,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public abstract class SvnApp<T> extends SimpleApplication<T> implements DocumentApplication {
-    private AppData m_appData;
-    private SaveAction m_saveAction;
     private UpdateAction m_updateAction = new UpdateAction();
     private CommitAction m_commitAction = new CommitAction();
     private RevertAction m_revertAction = new RevertAction();
@@ -115,58 +113,8 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         return commands;
     }
 
-    private void doSplit(TextChunk textChunk, Node node)
-    {
-        String[] chunks = textChunk.getText().split("-->split");
-        if (chunks.length > 1)
-        {
-            Content content = (Content) node.getParent().getParent().wrappedObject();
-            List<TreeNode> contentList = content.getParent().getChildren();
-            int index = contentList.indexOf(content);
-            textChunk.setText(chunks[0]);
-            for (int i = 1; i < chunks.length; i++)
-            {
-                String chunk = chunks[i];
-                String name = chunk.substring(0, Math.min(chunk.length(), 30));
-                if (!chunk.startsWith("\n"))
-                {
-                    String[] s = chunk.split("\n", 2);
-                    name = s[0];
-                    chunk = s[1];
-                }
-                Content newContent = (Content) classDatabase().newInstance(Content.class);
-                newContent.setName(name);
-                newContent.setParent(content.getParent());
-                TextChunk newTextChunk = (TextChunk) classDatabase().newInstance(TextChunk.class);
-                newTextChunk.setText(chunk);
-                newContent.getVersions().add(newTextChunk);
-                contentList.add(index + i, newContent);
-            }
-            m_appContainer.refreshNode(m_appContainer.getNode(content.getParent()));
-            m_appContainer.expand(textChunk);
-        }
-    }
-
     protected ClassDatabase<T> classDatabase() {
         return m_appContainer.getGuiContext().getClassDatabase();
-    }
-
-    @Override
-    public void nodeAboutToBeAdded(ListProperty listProperty, Object parent, Object newChild)
-    {
-        if (parent instanceof Content) //new content version should be inited to last version
-        {
-            Content content = (Content) parent;
-            TextChunk textChunk = (TextChunk) newChild;
-            textChunk.setText(content.getLatestText());
-        }
-        if (newChild instanceof Content)
-        {
-            Content content = (Content) newChild;
-            Tree tree = (Tree) parent;
-            content.setName(String.valueOf(tree.getChildren().size() + 1));
-            content.getVersions().add(new TextChunk());
-        }
     }
 
     private void render(HTML html, Section section, boolean isRoot)
@@ -298,7 +246,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
         public void actionPerformed(ActionEvent e)
         {
-            m_saveAction.save();
+            trySave();
             UpdateResult result = m_svnFacade.update(currentFilePath());
             if (result.isConflict())
             {
@@ -346,10 +294,10 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
     private void commit()
     {
-        m_saveAction.save();
+        trySave();
         try
         {
-            NovelloLauncher.SVN_FACADE.commit(currentFilePath(), "changes");
+            m_svnFacade.commit(currentFilePath(), "changes");
         }
         catch (RuntimeException e)
         {

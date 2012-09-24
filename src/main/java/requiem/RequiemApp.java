@@ -1,13 +1,12 @@
 package requiem;
 
+import com.xapp.application.api.Node;
 import com.xapp.application.api.SimpleApplication;
 import com.xapp.application.api.SpecialTreeGraphics;
+import com.xapp.objectmodelling.tree.Tree;
+import com.xapp.objectmodelling.tree.TreeNode;
 import com.xapp.utils.svn.SVNFacade;
-import novello.Direction;
-import novello.DocumentApp;
-import novello.Section;
-import novello.Text;
-import novello.TextHolder;
+import novello.*;
 import novello.wordhandling.DictionaryType;
 
 import java.util.List;
@@ -27,24 +26,48 @@ public class RequiemApp extends DocumentApp<Backlog> {
     }
 
     @Override
-    public Section getDocTree() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public Tree getDocTree() {
+        return getDocument().getWork();
     }
 
 
-    @Override
-    public void doSplit(Text pChunk) {
-        //To change body of implemented methods use File | Settings | File Templates.
+
+
+    public void doSplit(Text chunk)
+    {
+        doSplit(chunk, m_appContainer.getNode(chunk));
     }
 
-    @Override
-    public Object step(Direction pType, TextHolder pParentContent) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+    private void doSplit(Text textChunk, Node node)
+    {
+        String[] chunks = textChunk.text().split("\n,");
 
-    @Override
-    public TextHolder stepCircular(Direction pType, TextHolder textHolder) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (chunks.length > 1)
+        {
+            Tree workItem = (Tree) textChunk;
+            List<TreeNode> contentList = workItem.getChildren();
+            int index = contentList.indexOf(textChunk);
+            textChunk.setText("");
+            for (int i = 0; i < chunks.length; i++)
+            {
+                String chunk = chunks[i];
+                String name = chunk.substring(0, Math.min(chunk.length(), 30));
+                if (!chunk.startsWith("\n"))
+                {
+                    String[] s = chunk.split("\n", 2);
+                    name = s[0];
+                    chunk = s.length > 1 ? s[1] : "";
+                }
+                Task newTask = classDatabase().newInstance(Task.class);
+                newTask.setName(name);
+                newTask.setParent(workItem);
+                newTask.setText(chunk);
+                contentList.add(newTask);
+            }
+            m_appContainer.refreshNode(m_appContainer.getNode(workItem));
+            m_appContainer.expand(textChunk);
+            m_appContainer.getMainTree().requestFocusInWindow();
+        }
     }
 
     @Override

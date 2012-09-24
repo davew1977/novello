@@ -13,8 +13,7 @@ import com.xapp.utils.FileUtils;
 import com.xapp.utils.StringUtils;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.event.PopupMenuEvent;
+
 import static javax.swing.Box.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -22,8 +21,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
-import novello.startup.BookFile;
 import novello.*;
+import requiem.RequiemLauncher;
 
 public class StartupScreen
 {
@@ -48,10 +47,14 @@ public class StartupScreen
     private JFrame m_jd;
     private StartupScreen.QuickLaunchAction m_quickLaunchAction = new QuickLaunchAction();
     private StartupScreen.LaunchSVNAction m_launchSVNAction = new LaunchSVNAction();
+    private String type = "book";
+    private String appTitle;
 
-    public StartupScreen(final LauncherData launcherData)
+    public StartupScreen(final LauncherData launcherData, String type, String appTitle)
     {
         super();
+        this.type = type;
+        this.appTitle = appTitle;
 
         Box r1 = createLabelRow(20, "What would you like to do?", 400, "25", null);
         r1.setBorder(BorderFactory.createEtchedBorder());
@@ -60,13 +63,13 @@ public class StartupScreen
         setComponentSize(150, 20, m_recentlyOpenedCombo);
         m_quickLaunchOkbutton = createButton("OK", 90,20);
 
-        Box r2 = createHorizBox(createHorizontalStrut(50), createLabel("Re-open a book:", 120, null, 20),
+        Box r2 = createHorizBox(createHorizontalStrut(50), createLabel("Re-open a " + type + ":", 120, null, 20),
                 createHorizontalStrut(5), m_recentlyOpenedCombo, createHorizontalStrut(5), m_quickLaunchOkbutton, createHorizontalGlue());
 
         Box top = createVertBox(createVerticalStrut(20), r2, createVerticalStrut(20));
         top.setBorder(BorderFactory.createEtchedBorder());
 
-        Box r3 = createLabelRow(30, "Open book with Subversion:", 400, "20", NovelloTreeGraphics.SVN_ICON);
+        Box r3 = createLabelRow(30, "Open " + type + " with Subversion:", 400, "20", NovelloTreeGraphics.SVN_ICON);
 
         m_svnLocationTF = createTF(150,20);
         m_checkURLButton = createButton("Test URL", 90,20);
@@ -98,7 +101,7 @@ public class StartupScreen
                 r6,createVerticalStrut(5),r7, createVerticalStrut(5));
         middle.setBorder(BorderFactory.createEtchedBorder());
 
-        Box r8 = createLabelRow(30, "Open book on your computer:", 400, "20", null);
+        Box r8 = createLabelRow(30, "Open " + type + " on your computer:", 400, "20", null);
 
         m_locationTF = createTF(150,20);
         m_browseFileButton = createButton("Browse...", 90,20);
@@ -110,7 +113,7 @@ public class StartupScreen
         m_localFileOkButton = createButton("OK", 90,20);
         Box r10 = createHorizBox(createHorizontalStrut(332), m_localFileOkButton, createHorizontalGlue());
 
-        Box r11 = createLabelRow(30, "Create a new book on your computer:", 400, "20", null);
+        Box r11 = createLabelRow(30, "Create a new " + type + " on your computer:", 400, "20", null);
         m_saveLocationTF = createTF(150,20);
         m_saveLocationTF.setEditable(false);
         m_createFileButton = createButton("Create File...", 90,20);
@@ -147,7 +150,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
+                JFileChooser c = new JFileChooser(RequiemLauncher.HOME_DIR);
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);
                 if(r== JFileChooser.APPROVE_OPTION)
@@ -160,7 +163,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
+                JFileChooser c = new JFileChooser(RequiemLauncher.HOME_DIR);
                 setFont(c,"Tahoma-12");
                 int r = c.showSaveDialog(m_mainBox);
                 if(r== JFileChooser.APPROVE_OPTION)
@@ -173,7 +176,7 @@ public class StartupScreen
         {
             public void actionPerformed(ActionEvent e)
             {
-                JFileChooser c = new JFileChooser(NovelloLauncher.HOME_DIR);
+                JFileChooser c = new JFileChooser(RequiemLauncher.HOME_DIR);
                 c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 setFont(c,"Tahoma-12");
                 int r = c.showOpenDialog(m_mainBox);
@@ -190,7 +193,7 @@ public class StartupScreen
             public void actionPerformed(ActionEvent e)
             {
                 m_bookfile = new BookFile(m_locationTF.getText());
-                m_startupCallback.startNovello(m_bookfile);
+                m_startupCallback.start(m_bookfile);
             }
         });
         m_saveFileOkButton.addActionListener(new ActionListener()
@@ -207,7 +210,7 @@ public class StartupScreen
                     section.setName(f.getName().substring(0,f.getName().lastIndexOf(".")));
                     new Marshaller<Book>(Book.class).marshal(f, b);
                     m_bookfile = new BookFile(fileName);
-                    m_startupCallback.startNovello(m_bookfile);
+                    m_startupCallback.start(m_bookfile);
                 }
             }
         });
@@ -360,7 +363,7 @@ public class StartupScreen
     {
         if(m_jd ==null)
         {
-            m_jd = new JFrame("Novello");
+            m_jd = new JFrame(appTitle);
             m_jd.setContentPane(m_mainBox);
             m_jd.pack();
             m_jd.setLocationRelativeTo(null);
@@ -377,12 +380,12 @@ public class StartupScreen
         ap.getRecentlyOpened().add(new BookFile("local/hussl.xml"));
         StartupCallback callback = new StartupCallback()
         {
-            public void startNovello(BookFile bookFile)
+            public void start(BookFile bookFile)
             {
                 System.out.println(bookFile);
             }
         };
-        StartupScreen startupScreen = new StartupScreen(ap);
+        StartupScreen startupScreen = new StartupScreen(ap, "book", "novello");
         startupScreen.setStartupCallback(callback);
         startupScreen.getDialog().setVisible(true);
     }
@@ -399,11 +402,11 @@ public class StartupScreen
             m_bookfile = (BookFile) m_recentlyOpenedCombo.getSelectedItem();
             if (m_bookfile!=null)
             {
-                m_startupCallback.startNovello(m_bookfile);
+                m_startupCallback.start(m_bookfile);
             }
             else
             {
-                SwingUtils.warnUser(m_mainBox, "No book selected");
+                SwingUtils.warnUser(m_mainBox, "No " + type + " selected");
             }
         }
     }
@@ -437,7 +440,7 @@ public class StartupScreen
                 }
             }
             m_bookfile = new BookFileSVN(svnLocation, checkoutFolder, username, password);
-            m_startupCallback.startNovello(m_bookfile);
+            m_startupCallback.start(m_bookfile);
         }
     }
 }

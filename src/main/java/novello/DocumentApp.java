@@ -23,14 +23,15 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     @Override
     public void init(ApplicationContainer<T> applicationContainer) {
-        super.init(applicationContainer);
 
+        super.init(applicationContainer);
         m_mainEditor = new MainEditor(this);
         m_appContainer.setUserPanel(m_mainEditor, false);
         m_mainEditor.setResizeWeight(0.5);
 
-        selectLastEditedContent();
         initAppData();
+        selectLastEditedContent();
+        m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
 
     }
 
@@ -94,16 +95,19 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     public boolean shouldSplit(Text chunk)
     {
-        return chunk.text().contains("-->split") && SwingUtils.askUser(m_appContainer.getMainFrame(), "Do splits?");
+        return chunk.text().contains("\n,") && SwingUtils.askUser(m_appContainer.getMainFrame(), "Do splits?");
     }
     @Override
-    public void nodeSelected(Node node) {
+    public boolean nodeSelected(Node node) {
         super.nodeSelected(node);
         Object o = node.wrappedObject();
-        ClassModel cm = classDatabase().getClassModel(o.getClass());
-        if(cm.hasPrimaryKey())
+        if (o!=null)
         {
-            m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getPrimaryKey(o));
+            ClassModel cm = classDatabase().getClassModel(o.getClass());
+            if(cm.hasPrimaryKey())
+            {
+                m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getPrimaryKey(o));
+            }
         }
 
         if (node.isA(TextHolder.class))
@@ -111,13 +115,16 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
             TextHolder textHolder = node.wrappedObject();
             m_mainEditor.setChunk(textHolder.content());
             m_appContainer.setUserPanel(m_mainEditor, false);
+            return true;
         }
-        if (node.isA(Text.class))
+        else if (node.isA(Text.class))
         {
             Text text = node.wrappedObject();
             m_mainEditor.setChunk(text);
             m_appContainer.setUserPanel(m_mainEditor, false);
+            return true;
         }
+        return false;
     }
 
     private void selectLastEditedContent()
@@ -140,14 +147,9 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     @Override
     protected void trySave() {
-        new SaveAction(m_mainEditor, this).actionPerformed(null);
-    }
-
-    @Override
-    protected void setupToolbar() {
-        super.setupToolbar();
-        m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
-
+        m_mainEditor.store();
+        m_mainEditor.render();
+        getAppContainer().save();
     }
 
 
@@ -157,8 +159,14 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         selectLastEditedContent();
     }
 
-    public Document getDocument() {
+    public T getDocument() {
         return m_appContainer.getGuiContext().getInstance();
+    }
+
+
+    @Override
+    public TextHolder step(Direction pType, TextHolder pParentContent) {
+        return getDocTree().step(pType.getDelta(), pParentContent, TextHolder.class);
     }
 
     @Override

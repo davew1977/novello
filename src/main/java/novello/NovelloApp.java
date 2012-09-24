@@ -100,12 +100,12 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
     }
 
     @Override
-    public void nodeSelected(final Node node)
+    public boolean nodeSelected(final Node node)
     {
-        super.nodeSelected(node);
+        boolean consumed = super.nodeSelected(node);
         //html.size(3).font("Dialog");
 
-        if (node.wrappedObject() instanceof Section)
+        if (!consumed && node.wrappedObject() instanceof Section)
         {
             HTML html = new HTMLImpl();
             Section section = (Section) node.wrappedObject();
@@ -115,7 +115,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             m_appContainer.setUserPanel(m_browserView, false);
         }
 
-
+       return false;
     }
 
     @Override
@@ -147,19 +147,9 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         doSplit(chunk, m_appContainer.getNode(chunk));
     }
 
-    @Override
-    public Object step(Direction pType, TextHolder pParentContent) {
-        return getBook().step(pType, (Content) pParentContent);
-    }
-
-    @Override
-    public TextHolder stepCircular(Direction pType, TextHolder textHolder) {
-        return getBook().stepCircular(pType, (Content) textHolder);
-    }
-
     private void doSplit(Text textChunk, Node node)
     {
-        String[] chunks = textChunk.text().split("-->split");
+        String[] chunks = textChunk.text().split("\n,");
         if (chunks.length > 1)
         {
             Content content = (Content) node.getParent().getParent().wrappedObject();
@@ -277,11 +267,6 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
     @Override
     public Section getDocTree() {
         return getBook().getSection();
-    }
-
-    @Override
-    public void expand(Object node) {
-        getAppContainer().expand(node);
     }
 
     private class EditLatestCommand extends NodeCommand

@@ -76,49 +76,9 @@ public class Book implements Document
         return "Book";
     }
 
-    /**
-     * steps and loops. If end is reached, it will return the first and vica versa
-     * @param type
-     * @param thisContent
-     * @return
-     */
-    public Content stepCircular(Direction type, Content thisContent)
-    {
-        Content content = step(type, thisContent);
-        if(content==null)
-        {
-            List<Content> contents = m_section.enumerate(Content.class);
-            return type == Direction.forward ? contents.get(0) : contents.get(contents.size()-1);
-        }
-        return content;
-    }
-    public Content step(Direction type, Content thisContent)
-    {
-        Content previous = null;
-        Content next = null;
-        boolean found = false;
-        List<Content> contents = m_section.enumerate(Content.class);
-        for (Content content : contents)
-        {
-            if (content.equals(thisContent))
-            {
-                found = true;
-            }
-            else
-            {
-                if (found)
-                {
-                    next = content;
-                    break;
-                }
-                else
-                {
-                    previous = content;
-                }
-            }
-        }
-        return type.equals(Direction.forward) ? next : previous;
-    }
 
-
+    public Content step(Direction back, Content next)
+    {
+        return m_section.step(back.getDelta(), next, Content.class);
+    }
 }

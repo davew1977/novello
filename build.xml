@@ -38,6 +38,7 @@
     <target name="prepare-jars">
         <copy file="target/novello-1.0.0-SNAPSHOT.jar" tofile="target/novello.jar"/>
         <copy file="/Users/davidw/.m2/repository/com/xapp/xapp/1.0.0-SNAPSHOT/xapp-1.0.0-SNAPSHOT.jar" tofile="target/xapp.jar"/>
+        <copy file="/Users/davidw/.m2/repository/com/toedter/jcalendar/1.3.2/jcalendar-1.3.2.jar" tofile="target/jcalendar.jar"/>
 
     </target>
 
@@ -53,6 +54,7 @@
                 <fileset dir="target">
                     <include name="novello.jar"/>
                     <include name="xapp.jar"/>
+                    <include name="jcalendar.jar"/>
                 </fileset>
             </path>
         </signjar>
@@ -61,6 +63,7 @@
             <fileset dir="target/signed"/>
             <fileset dir="web">
                 <include name="novello.jnlp"/>
+                <include name="requiem.jnlp"/>
             </fileset>
         </scp>
     </target>

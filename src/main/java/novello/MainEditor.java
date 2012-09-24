@@ -191,7 +191,7 @@ public class MainEditor extends JSplitPane
                 }
                 if (!found)
                 {
-                    currentHolder = mDocumentApplication.stepCircular(m_type, currentHolder);
+                    currentHolder = mDocumentApplication.step(m_type, currentHolder);
                     currentChunk = currentHolder.content();
                     cursor = 0;
                 }

@@ -461,7 +461,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 if (m_mainEditor != null)
                 {
                     textEditor.addPopUpAction(new GotoAction(m_mainEditor, mDocumentApplication.getDocTree(), "goto"));
-                    textEditor.addInsertAction("make split", "-->split");
+                    textEditor.addInsertAction("make split", "\n,");
                 }
 
 

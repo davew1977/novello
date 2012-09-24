@@ -4,28 +4,29 @@
  * Author: davidw
  *
  */
-package novello;
+package requiem;
 
-import novello.startup.StartupScreen;
-import novello.startup.StartupCallback;
-import novello.startup.BookFile;
-import novello.startup.BookFileSVN;
+import com.xapp.application.utils.SwingUtils;
 import com.xapp.utils.svn.SVNFacade;
 import com.xapp.utils.svn.SVNKitFacade;
-import com.xapp.application.utils.SwingUtils;
+import novello.LauncherData;
+import novello.startup.BookFile;
+import novello.startup.BookFileSVN;
+import novello.startup.StartupCallback;
+import novello.startup.StartupScreen;
 
 import javax.swing.*;
-import java.io.File;
 import java.awt.*;
+import java.io.File;
 
-public class NovelloLauncher
+public class RequiemLauncher
 {
     public static SVNFacade SVN_FACADE;
-    public static File HOME_DIR = new File(getHomeDir() + "/novello");
+    public static File HOME_DIR = new File(getHomeDir() + "/requiem");
 
     static
     {
-        SwingUtils.DEFAULT_FRAME_ICON = NovelloTreeGraphics.BOOK_ICON;
+        //SwingUtils.DEFAULT_FRAME_ICON = RequiemTreeGraphics.BOOK_ICON;
         SwingUtils.DEFAULT_FONT = Font.decode("Tahoma-11");
     }
 
@@ -35,7 +36,7 @@ public class NovelloLauncher
 
         if(override)
         {
-            Object[] items = new Object[]{"C:\\dev\\novello_test\\david","C:\\dev\\novello_test\\bob"};
+            Object[] items = new Object[]{"C:\\dev\\requiem_test\\david","C:\\dev\\requiem_test\\bob"};
             JComboBox jcombo = new JComboBox(items);
             JOptionPane.showMessageDialog(null,jcombo);
 
@@ -49,7 +50,7 @@ public class NovelloLauncher
         HOME_DIR.mkdir();
         System.out.println(HOME_DIR.getAbsolutePath());
         final LauncherData launcherData = LauncherData.load();
-        final StartupScreen startupScreen = new StartupScreen(launcherData, "book", "Novello");
+        final StartupScreen startupScreen = new StartupScreen(launcherData, "backlog", "Requiem");
         StartupCallback callback = new StartupCallback()
         {
             public void start(BookFile bookFile)

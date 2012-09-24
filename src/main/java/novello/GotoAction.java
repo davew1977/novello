@@ -7,6 +7,7 @@
 package novello;
 
 import com.xapp.application.editor.widgets.TextEditor;
+import com.xapp.objectmodelling.tree.Tree;
 import com.xapp.objectmodelling.tree.TreeNode;
 
 import javax.swing.*;
@@ -14,39 +15,33 @@ import java.awt.event.ActionEvent;
 
 public class GotoAction extends AbstractAction
 {
-    Object m_subject;
+    Tree tree;
     private MainEditor m_mainEditor;
 
-    public GotoAction(MainEditor mainEditor, Object section, String name)
+    public GotoAction(MainEditor mainEditor, Tree section, String name)
     {
         super(name);
         m_mainEditor = mainEditor;
-        m_subject = section;
+        tree = section;
     }
 
     public void actionPerformed(ActionEvent e)
     {
-        if (m_subject instanceof Section)
+        TextEditor textEditor = m_mainEditor.m_chunkEditor.getTextEditor();
+        textEditor.newPopUp();
+
+        if(!tree.hasChildren())
         {
-            Section section = (Section) m_subject;
-
-            TextEditor textEditor = m_mainEditor.m_chunkEditor.getTextEditor();
-            textEditor.newPopUp();
-
-            if(section instanceof Content)
+            m_mainEditor.mDocumentApplication.expand(tree);
+        }
+        else
+        {
+            java.util.List<TreeNode> children = tree.getChildren();
+            for (TreeNode child : children)
             {
-                Content content = (Content) section;
-                m_mainEditor.mDocumentApplication.expand(content);
+                textEditor.addPopUpAction(new GotoAction(m_mainEditor, (Tree) child, child.getName()));
             }
-            else
-            {
-                java.util.List<TreeNode> children = section.getChildren();
-                for (TreeNode child : children)
-                {
-                    textEditor.addPopUpAction(new GotoAction(m_mainEditor, (Section) child, child.getName()));
-                }
-                textEditor.showPopUp();
-            }
+            textEditor.showPopUp();
         }
     }
 }

@@ -28,9 +28,7 @@ public interface DocumentApplication {
 
     void doSplit(Text pChunk);
 
-    Object step(Direction pType, TextHolder pParentContent);
-
-    TextHolder stepCircular(Direction pType, TextHolder textHolder);
+    TextHolder step(Direction pType, TextHolder pParentContent);
 
     void quit();
 

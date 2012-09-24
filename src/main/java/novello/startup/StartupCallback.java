@@ -8,5 +8,5 @@ package novello.startup;
 
 public interface StartupCallback
 {
-    void startNovello(BookFile bookFile);
+    void start(BookFile bookFile);
 }
