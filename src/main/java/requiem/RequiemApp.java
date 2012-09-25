@@ -1,8 +1,13 @@
 package requiem;
 
+import com.xapp.application.api.AbstractCommand;
+import com.xapp.application.api.Command;
 import com.xapp.application.api.Node;
+import com.xapp.application.api.NodeCommand;
 import com.xapp.application.api.SimpleApplication;
 import com.xapp.application.api.SpecialTreeGraphics;
+import com.xapp.objectmodelling.core.ListProperty;
+import com.xapp.objectmodelling.core.PropertyChangeTuple;
 import com.xapp.objectmodelling.tree.Tree;
 import com.xapp.objectmodelling.tree.TreeNode;
 import com.xapp.utils.svn.SVNFacade;
@@ -10,6 +15,7 @@ import novello.*;
 import novello.wordhandling.DictionaryType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates ...
@@ -30,8 +36,43 @@ public class RequiemApp extends DocumentApp<Backlog> {
         return getDocument().getWork();
     }
 
+    @Override
+    public List<Command> getCommands(Node node) {
+        List<Command> commands = super.getCommands(node);
+        if(node.isA(WorkItem.class)) {
+            commands.add(new NodeCommand("Switch State", "", "control D") {
+                @Override
+                public void execute(Node node) {
+                    WorkItem workItem = node.wrappedObject();
+                    workItem.setStatus(workItem.getStatus().next());
+                }
+            });
+        }
+        return commands;
+    }
 
+    private void trimName(TreeNode pChild) {
+        String name = pChild.getName();
+        if(name.endsWith("ß")) {
+            pChild.setName(name.substring(0, name.length() - 1));
+        }
+    }
 
+    @Override
+    public void nodeAdded(Node node) {
+        tryTrimName(node);
+    }
+
+    private void tryTrimName(Node node) {
+        if(node.isA(TreeNode.class)) {
+            trimName(node.<TreeNode>wrappedObject());
+        }
+    }
+
+    @Override
+    public void nodeUpdated(Node objectNode, Map<String, PropertyChangeTuple> changes) {
+        tryTrimName(objectNode);
+    }
 
     public void doSplit(Text chunk)
     {

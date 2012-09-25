@@ -31,7 +31,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
         initAppData();
         selectLastEditedContent();
-        m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
+        //m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
 
     }
 

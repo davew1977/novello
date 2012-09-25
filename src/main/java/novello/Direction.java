@@ -8,7 +8,7 @@ package novello;
 
 public enum Direction
 {
-    forward(-1), back(+1);
+    forward(1), back(-1);
     private int delta;
 
     Direction(int i)

@@ -90,29 +90,6 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         return m_svnFacade != null;
     }
 
-    public SpecialTreeGraphics createSpecialTreeGraphics()
-    {
-        return new NovelloTreeGraphics();
-    }
-
-    @Override
-    public List<Command> getCommands(Node node)
-    {
-        List<Command> commands = new ArrayList<Command>();
-        if (node.wrappedObject() instanceof Content)
-        {
-            commands.add(new EditLatestCommand());
-            commands.add(new NodeCommand("Set grade to 75", "sets the grade to 75", "ctrl G") {
-                public void execute(Node params) {
-                    Content content = (Content) params.wrappedObject();
-                    content.setGrade(75);
-                }
-            });
-        }
-
-        return commands;
-    }
-
     protected ClassDatabase<T> classDatabase() {
         return m_appContainer.getGuiContext().getClassDatabase();
     }
