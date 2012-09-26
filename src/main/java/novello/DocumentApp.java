@@ -27,7 +27,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         super.init(applicationContainer);
         m_mainEditor = new MainEditor(this);
         m_appContainer.setUserPanel(m_mainEditor, false);
-        m_mainEditor.setResizeWeight(0.5);
+        //m_mainEditor.setResizeWeight(0.5);
 
         initAppData();
         selectLastEditedContent();

@@ -23,7 +23,7 @@ import java.awt.event.AdjustmentListener;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class MainEditor extends JSplitPane
+public class MainEditor extends JScrollPane
 {
     DocumentApplication mDocumentApplication;
     BrowserView m_htmlRenderer;
@@ -32,11 +32,12 @@ public class MainEditor extends JSplitPane
     private TextHolder parent;
     private Pattern WORD_COUNT_PATTERN = Pattern.compile("\\s+");
     private final JScrollPane m_jsp1;
-    private final JScrollPane m_jsp2;
+    private Popup popUpRenderer;
+    //private final JScrollPane m_jsp2;
 
     public MainEditor(DocumentApplication novelloApp)
     {
-        super(VERTICAL_SPLIT);
+
         mDocumentApplication = novelloApp;
         m_htmlRenderer = new BrowserView();
         m_chunkEditor = new ChunkEditor();
@@ -47,10 +48,10 @@ public class MainEditor extends JSplitPane
         m_jsp1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         m_jsp1.setPreferredSize(new Dimension(300, 400));
 
-        add(m_jsp1);
+        //add(m_jsp1);
 
-        m_jsp2 = m_chunkEditor.getComponent();
-        add(m_jsp2);
+
+        setViewportView(m_chunkEditor.getTextEditor());
 
 
         m_chunkEditor.getTextEditor().addAction("control S", new SaveAction(this, novelloApp));
@@ -59,9 +60,10 @@ public class MainEditor extends JSplitPane
         m_chunkEditor.getTextEditor().addAction("alt LEFT", new StepAction(Direction.back));
         m_chunkEditor.getTextEditor().addAction("F2", new Find(Direction.forward, new FindMispelt()));
         m_chunkEditor.getTextEditor().addAction("shift F2", new Find(Direction.back, new FindMispelt()));
+        m_chunkEditor.getTextEditor().addAction("alt M", new Render());
 
         m_jsp1.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
-        m_jsp2.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
+        getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
 
         Dictionary dictionary = DictFileHandler.getDictionary();
         dictionary.addWords(mDocumentApplication.getLocalDictionary());
@@ -101,9 +103,9 @@ public class MainEditor extends JSplitPane
         HTML html = new HTMLImpl();
         html.setStyle(mDocumentApplication.getStyleSheet());
         html.p(m_chunk.text());
-        int value = m_jsp2.getVerticalScrollBar().getValue();
+        int value = getVerticalScrollBar().getValue();
         m_htmlRenderer.setHTML(html);
-        m_jsp2.getVerticalScrollBar().setValue(value);
+        getVerticalScrollBar().setValue(value);
     }
 
     private void updateWordCount()
@@ -234,8 +236,8 @@ public class MainEditor extends JSplitPane
             //work out percentage
             if (!m_ignore)
             {
-                JScrollPane me = e.getSource() == m_jsp2.getVerticalScrollBar() ? m_jsp2 : m_jsp1;
-                JScrollPane other = e.getSource() == m_jsp2.getVerticalScrollBar() ? m_jsp1 : m_jsp2;
+                JScrollPane me = e.getSource() == getVerticalScrollBar() ? MainEditor.this : m_jsp1;
+                JScrollPane other = e.getSource() == getVerticalScrollBar() ? m_jsp1 : MainEditor.this;
 
                 int myMax = me.getVerticalScrollBar().getMaximum() - me.getVerticalScrollBar().getVisibleAmount();
                 int otherMax = other.getVerticalScrollBar().getMaximum() - other.getVerticalScrollBar().getVisibleAmount();
@@ -243,6 +245,25 @@ public class MainEditor extends JSplitPane
                 m_ignore = true;
                 other.getVerticalScrollBar().setValue((int) (otherMax * proportion));
                 m_ignore = false;
+            }
+        }
+    }
+
+    /**
+     * creates a popup containing content renderered as html
+     */
+    private class Render extends AbstractAction {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (popUpRenderer==null) {
+                JFrame jf = (JFrame) SwingUtilities.getRoot(MainEditor.this);
+                popUpRenderer = PopupFactory.getSharedInstance().getPopup(MainEditor.this, m_jsp1,
+                        jf.getLocationOnScreen().x + 10, jf.getLocationOnScreen().y + 30);
+                popUpRenderer.show();
+            }
+            else {
+                popUpRenderer.hide();
+                popUpRenderer = null;
             }
         }
     }
