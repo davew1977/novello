@@ -62,13 +62,13 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
     protected void setupToolbar()
     {
-        m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
-        m_appContainer.getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
-        m_appContainer.getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
-        updateViewState();
 
         if (isSVNMode())
         {
+            m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
+            m_appContainer.getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
+            m_appContainer.getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
+            updateViewState();
             m_appContainer.addBeforeHook(DefaultAction.QUIT, new ExitCommitHook());
             Box b = Box.createHorizontalBox();
             b.add(Box.createHorizontalStrut(10));
