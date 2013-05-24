@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class ChunkEditor extends AbstractPropertyWidget<String>
 {
     private JScrollPane m_scrollPane;
-    private TextEditor m_textEditor;
+    protected TextEditor m_textEditor;
     private static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
     public Dictionary m_dict;
@@ -203,7 +203,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         getTextEditor().setText(value);
         m_undoManager.enable();
         m_textEditor.clearLiveTemplate();
-        m_textEditor.addLiveTemplate("a", "<a href=\"$0\">$1</a>$2");
+        m_textEditor.addLiveTemplate("a", "<a target=\"_blank\" href=\"$0\">$1</a>$2");
         m_textEditor.addLiveTemplate("b", "<b>$0</b>$1");
         m_textEditor.addLiveTemplate("i", "<i>$0</i>$1");
         m_textEditor.addLiveTemplate("img", "<img src=\"$0\"/>$1");
@@ -430,7 +430,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     else if (e.getKeyChar() == KeyEvent.VK_SPACE)
                     {
                         String link = m_wikipediaService.link((ResultItem) list.getSelectedValue());
-                        String insert = String.format("<a href=\"%s\">%s</a>", link, m_word);
+                        String insert = String.format("<a target='_blank' href=\"%s\">%s</a>", link, m_word);
                         m_textEditor.remove(m_removeStart, m_removeLength);
                         m_textEditor.insert(m_removeStart, insert);
                         f.setVisible(false);
@@ -475,7 +475,20 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             int removeLength = removeEnd-removeStart;
             wordToLookup = wordToLookup != null ? wordToLookup : word;
             m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup, line, removeStart, removeLength));
+            controlSpaceClicked(wordToLookup, line, removeStart, removeLength);
             textEditor.showPopUp();
         }
+    }
+
+    /**
+     * override to add extra pop up commands
+     * @param wordToLookup the selected text or nearest word
+     * @param line
+     * @param removeStart start of selection, useful if replacing text
+     * @param removeLength
+     */
+    protected void controlSpaceClicked(String wordToLookup, TextEditor.Line line, int removeStart, int removeLength)
+    {
+
     }
 }
