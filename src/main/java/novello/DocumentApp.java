@@ -16,6 +16,7 @@ import java.util.List;
 public abstract class DocumentApp<T extends Document> extends SvnApp<T> implements DocumentApplication{
     private MainEditor m_mainEditor;
     private AppData m_appData;
+    protected String appDataPrefix = "";
 
     public DocumentApp(SVNFacade svnFacade) {
         super(svnFacade);
@@ -25,16 +26,23 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
     public void init(ApplicationContainer<T> applicationContainer) {
 
         super.init(applicationContainer);
-        m_mainEditor = new MainEditor(this);
+        m_mainEditor = createMainEditor();
         m_appContainer.setUserPanel(m_mainEditor, false);
         //m_mainEditor.setResizeWeight(0.5);
 
         initAppData();
-        selectLastEditedContent();
         //m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
 
     }
 
+    /**
+     * Override to extend the main editor
+     * @return
+     */
+    public MainEditor createMainEditor()
+    {
+        return new MainEditor(this);
+    }
 
 
     public void addWordToDict(DictionaryType dictType, String word)
@@ -59,9 +67,10 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         return getDocument().getStyleSheet();
     }
 
-    private void initAppData()
+    protected void initAppData()
     {
-        final File appDataFile = new File(m_appContainer.getGuiContext().getCurrentFile().getParentFile(), "app-data.xml");
+        String appDataFileName = appDataPrefix + "app-data.xml";
+        final File appDataFile = new File(m_appContainer.getGuiContext().getCurrentFile().getParentFile(), appDataFileName);
         if (appDataFile.exists())
         {
             try
@@ -127,7 +136,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         return false;
     }
 
-    private void selectLastEditedContent()
+    protected void selectLastEditedContent()
     {
         String lastEdited = m_appData.getLastSelected();
         if (lastEdited != null)

@@ -25,7 +25,7 @@ import java.util.regex.Matcher;
 
 public class MainEditor extends JScrollPane
 {
-    DocumentApplication mDocumentApplication;
+    public DocumentApplication mDocumentApplication;
     BrowserView m_htmlRenderer;
     ChunkEditor m_chunkEditor;
     private Text m_chunk = new TextChunk();
@@ -40,7 +40,7 @@ public class MainEditor extends JScrollPane
 
         mDocumentApplication = novelloApp;
         m_htmlRenderer = new BrowserView();
-        m_chunkEditor = new ChunkEditor();
+        m_chunkEditor = createChunkEditor();
         m_chunkEditor.setNovelloApp(mDocumentApplication);
         m_chunkEditor.setMainEditor(this);
 
@@ -86,6 +86,11 @@ public class MainEditor extends JScrollPane
 
             }
         });
+    }
+
+    public ChunkEditor createChunkEditor()
+    {
+        return new ChunkEditor();
     }
 
     public void setChunk(Text textChunk)
