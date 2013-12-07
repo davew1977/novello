@@ -6,13 +6,13 @@
  */
 package novello.wikipedia;
 
-import novello.utils.Lookup;
 import novello.utils.CachedLookup;
+import novello.utils.Lookup;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.io.IOException;
 
 public class WikipediaService implements Lookup<String, WikipediaResponse>
 {

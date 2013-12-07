@@ -1,10 +1,10 @@
 package novello;
 
-import com.xapp.application.api.ApplicationContainer;
-import com.xapp.application.api.Node;
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.objectmodelling.core.ClassModel;
-import com.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.application.api.ApplicationContainer;
+import net.sf.xapp.application.api.Node;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.objectmodelling.core.ClassModel;
+import net.sf.xapp.utils.svn.SVNFacade;
 import novello.wordhandling.DictionaryType;
 
 import java.io.File;

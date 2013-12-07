@@ -7,14 +7,13 @@
  */
 package novello;
 
-import com.xapp.application.annotations.EditorWidget;
-import com.xapp.application.editor.widgets.FreeTextPropertyWidget;
-import com.xapp.marshalling.annotations.FormattedText;
-import com.xapp.objectmodelling.tree.Tree;
+import net.sf.xapp.annotations.application.EditorWidget;
+import net.sf.xapp.application.editor.widgets.FreeTextPropertyWidget;
+import net.sf.xapp.tree.Tree;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * "Sections" mark the structure of the document. Any text entered here is metadata
@@ -86,13 +85,13 @@ public class Section extends Tree
 
     public Section parent()
     {
-        return (Section) getParent();
+        return (Section) super.parent();
     }
 
     public Map<String,String> resolveCustomLiveTemplates()
     {
         Map<String,String> liveTemplates = new HashMap<String, String>();
-        if(!isRoot())
+        if(!_isRoot())
         {
             liveTemplates.putAll(parent().resolveCustomLiveTemplates());
         }

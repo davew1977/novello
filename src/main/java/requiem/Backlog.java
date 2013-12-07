@@ -1,8 +1,7 @@
 package requiem;
 
-import com.xapp.objectmodelling.annotations.TreeMeta;
-import com.xapp.objectmodelling.tree.Tree;
-import novello.Content;
+import net.sf.xapp.annotations.objectmodelling.TreeMeta;
+import net.sf.xapp.tree.Tree;
 import novello.Direction;
 import novello.Document;
 

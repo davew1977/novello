@@ -6,19 +6,18 @@
  */
 package novello.help;
 
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.application.utils.html.HTML;
-import com.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.application.utils.html.HTML;
+import net.sf.xapp.application.utils.html.HTMLImpl;
+import novello.NovelloTreeGraphics;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.io.IOException;
-
-import novello.NovelloTreeGraphics;
 
 public class AboutPane extends JPanel
 {

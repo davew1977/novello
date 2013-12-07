@@ -6,7 +6,7 @@
  */
 package novello.wordhandling;
 
-import com.xapp.utils.FileUtils;
+import net.sf.xapp.utils.FileUtils;
 
 public class ThesaurusRunner
 {

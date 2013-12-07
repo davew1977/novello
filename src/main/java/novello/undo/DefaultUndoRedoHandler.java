@@ -6,8 +6,8 @@
  */
 package novello.undo;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultUndoRedoHandler implements UpdateListener, UndoRedoHandler
 {

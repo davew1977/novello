@@ -1,18 +1,16 @@
 package requiem;
 
-import com.xapp.application.api.AbstractCommand;
-import com.xapp.application.api.Command;
-import com.xapp.application.api.Node;
-import com.xapp.application.api.NodeCommand;
-import com.xapp.application.api.SimpleApplication;
-import com.xapp.application.api.SpecialTreeGraphics;
-import com.xapp.objectmodelling.core.ListProperty;
-import com.xapp.objectmodelling.core.PropertyChangeTuple;
-import com.xapp.objectmodelling.tree.Tree;
-import com.xapp.objectmodelling.tree.TreeNode;
-import com.xapp.utils.svn.SVNFacade;
-import novello.*;
-import novello.wordhandling.DictionaryType;
+import net.sf.xapp.application.api.Command;
+import net.sf.xapp.application.api.Node;
+import net.sf.xapp.application.api.NodeCommand;
+import net.sf.xapp.application.api.SpecialTreeGraphics;
+import net.sf.xapp.objectmodelling.core.PropertyChangeTuple;
+import net.sf.xapp.tree.Tree;
+import net.sf.xapp.tree.TreeNode;
+import net.sf.xapp.utils.svn.SVNFacade;
+import novello.DocumentApp;
+import novello.Text;
+import novello.TextHolder;
 
 import java.util.List;
 import java.util.Map;

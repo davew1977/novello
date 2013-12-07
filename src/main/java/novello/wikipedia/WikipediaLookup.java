@@ -6,14 +6,14 @@
  */
 package novello.wikipedia;
 
-import com.xapp.utils.FileUtils;
-import com.xapp.marshalling.Unmarshaller;
+import net.sf.xapp.marshalling.Unmarshaller;
+import net.sf.xapp.utils.FileUtils;
 import novello.utils.Lookup;
 
-import java.net.URLEncoder;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class WikipediaLookup implements Lookup<String, WikipediaResponse>
 {

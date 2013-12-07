@@ -7,9 +7,9 @@
  */
 package novello;
 
-import com.xapp.application.annotations.Mandatory;
-import com.xapp.application.annotations.EditorWidget;
-import com.xapp.marshalling.annotations.FormattedText;
+import net.sf.xapp.annotations.application.EditorWidget;
+import net.sf.xapp.annotations.application.Mandatory;
+import net.sf.xapp.annotations.marshalling.FormattedText;
 import novello.widgets.ChunkEditor;
 
 public class TextChunk implements Text

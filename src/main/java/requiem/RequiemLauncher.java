@@ -6,9 +6,9 @@
  */
 package requiem;
 
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.utils.svn.SVNFacade;
-import com.xapp.utils.svn.SVNKitFacade;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.utils.svn.SVNKitFacade;
 import novello.LauncherData;
 import novello.startup.BookFile;
 import novello.startup.BookFileSVN;

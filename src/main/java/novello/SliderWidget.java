@@ -7,10 +7,9 @@
  */
 package novello;
 
-import com.xapp.application.api.PropertyWidget;
-import com.xapp.application.api.WidgetContext;
-import com.xapp.application.editor.widgets.IntegerPropertyWidget;
-import com.xapp.objectmodelling.core.Property;
+import net.sf.xapp.application.api.PropertyWidget;
+import net.sf.xapp.application.api.WidgetContext;
+import net.sf.xapp.objectmodelling.core.Property;
 
 import javax.swing.*;
 

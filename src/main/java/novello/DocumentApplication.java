@@ -1,7 +1,7 @@
 package novello;
 
-import com.xapp.application.api.ApplicationContainer;
-import com.xapp.objectmodelling.tree.Tree;
+import net.sf.xapp.application.api.ApplicationContainer;
+import net.sf.xapp.tree.Tree;
 import novello.wordhandling.DictionaryType;
 
 import java.util.List;

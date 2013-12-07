@@ -7,20 +7,23 @@
  */
 package novello.widgets;
 
-import com.xapp.application.editor.widgets.AbstractPropertyWidget;
-import com.xapp.application.editor.widgets.TextEditor;
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.application.utils.html.HTML;
-import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.utils.StringUtils;
+import net.sf.xapp.application.editor.text.TextEditor;
+import net.sf.xapp.application.editor.text.Word;
+import net.sf.xapp.application.editor.widgets.AbstractPropertyWidget;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.application.utils.html.HTML;
+import net.sf.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.utils.StringUtils;
 import novello.*;
 import novello.undo.UndoManager;
 import novello.undo.Update;
 import novello.wikipedia.ResultItem;
 import novello.wikipedia.WikipediaResponse;
 import novello.wikipedia.WikipediaService;
-import novello.wordhandling.*;
+import novello.wordhandling.DictFileHandler;
 import novello.wordhandling.Dictionary;
+import novello.wordhandling.DictionaryType;
+import novello.wordhandling.ThesaurusService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -147,7 +150,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                     handleNewText(-1, null, null, Arrays.asList(lineAffected));
                 }
             };
-            m_textEditor.setFont(Font.decode("Courier-PLAIN-12"));
+            m_textEditor.setFont(Font.decode("Courier-PLAIN-14"));
 
             m_textEditor.setWordwrap(true);
 
@@ -231,17 +234,17 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         public void actionPerformed(ActionEvent e)
         {
             final TextEditor.Line line = m_textEditor.getCurrentLine();
-            final String wordToCaret = line.wordToCaret();
-            List<String> words = m_dict.findWords(wordToCaret, 25);
-            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
+            final Word word = line.wordAtCaret();
+            List<String> words = m_dict.findWords(word.wordToCaret(), 25);
+            Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - word.wordToCaret().length());
             if (!words.isEmpty())
             {
                 ComboChooser<String> combo = new ComboChooser<String>();
-                combo.init(p.x - 2, p.y - 2, m_textEditor, words, wordToCaret, new MyComboChooserClient()
+                combo.init(p.x - 2, p.y - 2, m_textEditor, words, word.wordToCaret(), new MyComboChooserClient()
                 {
                     public void itemChosen(String item)
                     {
-                        m_textEditor.replaceWordAtCaret(line, item);
+                        m_textEditor.replaceWordAtCaret(word, item);
                     }
 
                     public List<String> filterValues(String updatedText)
@@ -300,10 +303,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         public void actionPerformed(ActionEvent e)
         {
             final TextEditor.Line line = m_textEditor.getCurrentLine();
-            String word = line.wordAtCaret();
+            final Word word = line.wordAtCaret();
             final String wordToCaret = line.wordToCaret();
             Point p = m_textEditor.getPointAtIndex(m_textEditor.getCaretPosition() - wordToCaret.length());
-            Collection<String> options = m_thesaurus.lookup(word);
+            Collection<String> options = m_thesaurus.lookup(word.value);
             if (!options.isEmpty())
             {
                 ComboChooser<String> combo = new ComboChooser<String>();
@@ -311,7 +314,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 {
                     public void itemChosen(String item)
                     {
-                        m_textEditor.replaceWordAtCaret(line, item);
+                        m_textEditor.replaceWordAtCaret(word, item);
                     }
                 });
             }
@@ -449,10 +452,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             TextEditor textEditor = getTextEditor();
             textEditor.newPopUp();
             final TextEditor.Line line = m_textEditor.getCurrentLine();
-            final String word = line.wordAtCaret(WORD_FOR_SPELLCHECK);
-            if (!m_dict.wordOk(word))
+            final Word word = line.wordAtCaret(WORD_FOR_SPELLCHECK);
+            if (!m_dict.wordOk(word.value))
             {
-                m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word, line));
+                m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.local, word.value, line));
                 //m_textEditor.addPopUpAction(new AddWordAction(DictionaryType.global, word, line));
             }
             else
@@ -470,10 +473,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                 textEditor.addInsertAction("timestamp", "[" + username + " " + ts + "]  ");
             }
             String wordToLookup = m_textEditor.getSelectedText();
-            int removeStart = wordToLookup!=null ? m_textEditor.getSelectionStart() : m_textEditor.wordAtCaretStart();
-            int removeEnd= wordToLookup!=null ? m_textEditor.getSelectionEnd() : m_textEditor.wordAtCaretEnd();
+            int removeStart = wordToLookup!=null ? m_textEditor.getSelectionStart() : word.start;
+            int removeEnd= wordToLookup!=null ? m_textEditor.getSelectionEnd() : word.end;
             int removeLength = removeEnd-removeStart;
-            wordToLookup = wordToLookup != null ? wordToLookup : word;
+            wordToLookup = wordToLookup != null ? wordToLookup : word.value;
             m_textEditor.addPopUpAction(new WikipediaAction(wordToLookup, line, removeStart, removeLength));
             controlSpaceClicked(wordToLookup, line, removeStart, removeLength);
             textEditor.showPopUp();

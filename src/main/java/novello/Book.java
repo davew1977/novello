@@ -7,14 +7,13 @@
  */
 package novello;
 
-import com.xapp.objectmodelling.annotations.TreeMeta;
-import com.xapp.application.annotations.EditorWidget;
-import com.xapp.application.editor.widgets.FreeTextPropertyWidget;
-
-import java.util.List;
-import java.util.ArrayList;
-
+import net.sf.xapp.annotations.application.EditorWidget;
+import net.sf.xapp.annotations.objectmodelling.TreeMeta;
+import net.sf.xapp.application.editor.widgets.FreeTextPropertyWidget;
 import novello.wordpress.Account;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Book implements Document
 {

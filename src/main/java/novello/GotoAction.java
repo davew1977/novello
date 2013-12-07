@@ -6,9 +6,9 @@
  */
 package novello;
 
-import com.xapp.application.editor.widgets.TextEditor;
-import com.xapp.objectmodelling.tree.Tree;
-import com.xapp.objectmodelling.tree.TreeNode;
+import net.sf.xapp.application.editor.text.TextEditor;
+import net.sf.xapp.tree.Tree;
+import net.sf.xapp.tree.TreeNode;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

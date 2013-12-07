@@ -1,13 +1,11 @@
 package requiem;
 
-import com.xapp.application.annotations.EditorWidget;
-import com.xapp.application.annotations.Hide;
-import com.xapp.application.annotations.Mandatory;
-import com.xapp.marshalling.annotations.FormattedText;
-import com.xapp.objectmodelling.annotations.ContainsReferences;
-import com.xapp.objectmodelling.annotations.Reference;
-import com.xapp.objectmodelling.annotations.ValidImplementations;
-import com.xapp.objectmodelling.tree.Tree;
+import net.sf.xapp.annotations.application.EditorWidget;
+import net.sf.xapp.annotations.application.Mandatory;
+import net.sf.xapp.annotations.marshalling.FormattedText;
+import net.sf.xapp.annotations.objectmodelling.Reference;
+import net.sf.xapp.annotations.objectmodelling.ValidImplementations;
+import net.sf.xapp.tree.Tree;
 import novello.Text;
 import novello.TextHolder;
 import novello.widgets.ChunkEditor;

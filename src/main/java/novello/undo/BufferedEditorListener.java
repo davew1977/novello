@@ -6,13 +6,11 @@
  */
 package novello.undo;
 
-import novello.TextChunk;
-
 import javax.swing.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.List;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 
 public class BufferedEditorListener implements EditorListener
 {

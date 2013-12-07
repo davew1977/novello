@@ -7,11 +7,11 @@
  */
 package novello;
 
-import com.xapp.objectmodelling.annotations.Transient;
-import com.xapp.objectmodelling.annotations.ListType;
+import net.sf.xapp.annotations.objectmodelling.ListType;
+import net.sf.xapp.annotations.objectmodelling.Transient;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Contents are nodes that contain real text for the document

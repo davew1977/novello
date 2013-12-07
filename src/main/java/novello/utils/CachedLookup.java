@@ -6,8 +6,8 @@
  */
 package novello.utils;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class CachedLookup<K,V> implements Lookup<K,V>
 {

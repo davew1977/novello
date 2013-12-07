@@ -1,6 +1,6 @@
 package requiem;
 
-import com.xapp.objectmodelling.annotations.Transient;
+import net.sf.xapp.annotations.objectmodelling.Transient;
 
 /**
  * a collection of work items

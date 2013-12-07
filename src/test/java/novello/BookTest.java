@@ -1,9 +1,9 @@
 package novello;
 
 import junit.framework.TestCase;
-import com.xapp.marshalling.Unmarshaller;
-import com.xapp.objectmodelling.api.ClassDatabase;
-import com.xapp.objectmodelling.core.ClassModelManager;
+import net.sf.xapp.marshalling.Unmarshaller;
+import net.sf.xapp.objectmodelling.api.ClassDatabase;
+import net.sf.xapp.objectmodelling.core.ClassModelManager;
 
 /**
  * Book Tester.

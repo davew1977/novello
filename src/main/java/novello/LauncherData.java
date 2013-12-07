@@ -6,16 +6,15 @@
  */
 package novello;
 
+import net.sf.xapp.annotations.objectmodelling.Reference;
+import net.sf.xapp.marshalling.Marshaller;
+import net.sf.xapp.marshalling.Unmarshaller;
 import novello.startup.BookFile;
 import novello.startup.BookFileSVN;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.File;
-
-import com.xapp.marshalling.Unmarshaller;
-import com.xapp.marshalling.Marshaller;
-import com.xapp.objectmodelling.annotations.Reference;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LauncherData
 {

@@ -6,23 +6,25 @@
  */
 package novello.startup;
 
-import static com.xapp.application.utils.SwingUtils.*;
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.marshalling.Marshaller;
-import com.xapp.utils.FileUtils;
-import com.xapp.utils.StringUtils;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.marshalling.Marshaller;
+import net.sf.xapp.utils.FileUtils;
+import net.sf.xapp.utils.StringUtils;
+import novello.Book;
+import novello.LauncherData;
+import novello.NovelloTreeGraphics;
+import novello.Section;
+import requiem.RequiemLauncher;
 
 import javax.swing.*;
-
-import static javax.swing.Box.*;
-import java.awt.event.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
-import novello.*;
-import requiem.RequiemLauncher;
+import static javax.swing.Box.*;
+import static net.sf.xapp.application.utils.SwingUtils.*;
 
 public class StartupScreen
 {

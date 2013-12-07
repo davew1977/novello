@@ -6,8 +6,6 @@
  */
 package novello.undo;
 
-import novello.TextChunk;
-
 public class UndoManager implements EditorListener, UndoRedoHandler
 {
     private EditorListener m_state;

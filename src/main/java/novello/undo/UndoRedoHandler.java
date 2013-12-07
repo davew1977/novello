@@ -6,8 +6,6 @@
  */
 package novello.undo;
 
-import java.util.List;
-
 public interface UndoRedoHandler
 {
     boolean canUndo();

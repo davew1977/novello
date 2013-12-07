@@ -7,34 +7,26 @@
  */
 package novello;
 
-import com.xapp.application.api.ApplicationContainer;
-import com.xapp.application.api.Command;
-import com.xapp.application.api.Node;
-import com.xapp.application.api.NodeCommand;
-import com.xapp.application.api.SpecialTreeGraphics;
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.application.utils.html.BrowserView;
-import com.xapp.application.utils.html.HTML;
-import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.objectmodelling.api.ClassDatabase;
-import com.xapp.objectmodelling.core.ListProperty;
-import com.xapp.objectmodelling.core.PropertyChangeTuple;
-import com.xapp.objectmodelling.tree.Tree;
-import com.xapp.objectmodelling.tree.TreeNode;
-import com.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.application.api.*;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.application.utils.html.BrowserView;
+import net.sf.xapp.application.utils.html.HTML;
+import net.sf.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.objectmodelling.api.ClassDatabase;
+import net.sf.xapp.objectmodelling.core.ListProperty;
+import net.sf.xapp.objectmodelling.core.PropertyChangeTuple;
+import net.sf.xapp.tree.Tree;
+import net.sf.xapp.tree.TreeNode;
+import net.sf.xapp.utils.svn.SVNFacade;
 import novello.help.AboutPane;
 import novello.help.ReferenceCard;
-import novello.wordhandling.DictionaryType;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class NovelloApp extends DocumentApp<Book> implements DocumentApplication {
     private ClassDatabase<Book> m_classDatabase;
@@ -112,7 +104,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             html.p("word count: " + section.wordcount());
             render(html, section, true);
             setHtml(html);
-            m_appContainer.setUserPanel(m_browserView, false);
+            m_appContainer.setUserPanel(m_browserView, true);
         }
 
        return false;
@@ -153,7 +145,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         if (chunks.length > 1)
         {
             Content content = (Content) node.getParent().getParent().wrappedObject();
-            List<TreeNode> contentList = content.getParent().getChildren();
+            List<TreeNode> contentList = content.parent().getChildren();
             int index = contentList.indexOf(content);
             textChunk.setText(chunks[0]);
             for (int i = 1; i < chunks.length; i++)
@@ -168,13 +160,13 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
                 }
                 Content newContent = (Content) m_classDatabase.newInstance(Content.class);
                 newContent.setName(name);
-                newContent.setParent(content.getParent());
+                newContent.setParent(content.parent());
                 TextChunk newTextChunk = (TextChunk) m_classDatabase.newInstance(TextChunk.class);
                 newTextChunk.setText(chunk);
                 newContent.getVersions().add(newTextChunk);
                 contentList.add(index + i, newContent);
             }
-            m_appContainer.refreshNode(m_appContainer.getNode(content.getParent()));
+            m_appContainer.refreshNode(m_appContainer.getNode(content.parent()));
             m_appContainer.expand(textChunk);
         }
     }

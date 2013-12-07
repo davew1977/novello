@@ -6,17 +6,16 @@
  */
 package novello.wordhandling;
 
-import com.xapp.utils.FileUtils;
+import net.sf.xapp.utils.FileUtils;
+import novello.NovelloLauncher;
 
-import java.util.zip.ZipFile;
-import java.util.zip.ZipEntry;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.List;
-import java.io.IOException;
-import java.io.File;
-import java.net.URISyntaxException;
-
-import novello.NovelloLauncher;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class DictFileHandler
 {

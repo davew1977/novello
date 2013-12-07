@@ -6,16 +6,16 @@
  */
 package novello.widgets;
 
-import com.xapp.application.utils.SwingUtils;
+import net.sf.xapp.application.utils.SwingUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
-import java.util.Collection;
 
 public class ComboChooser<T> extends JComboBox implements ItemListener
 {

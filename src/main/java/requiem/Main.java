@@ -1,9 +1,9 @@
 package requiem;
 
-import com.xapp.application.api.Launcher;
-import com.xapp.utils.svn.SVNFacade;
-import com.xapp.utils.svn.SVNKitFacade;
-import com.xapp.utils.svn.SvnConfig;
+import net.sf.xapp.application.api.Launcher;
+import net.sf.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.utils.svn.SVNKitFacade;
+import net.sf.xapp.utils.svn.SvnConfig;
 
 /**
  * Encapsulates ...

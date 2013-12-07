@@ -6,17 +6,17 @@
  */
 package novello;
 
-import novello.startup.StartupScreen;
-import novello.startup.StartupCallback;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.utils.svn.SVNKitFacade;
 import novello.startup.BookFile;
 import novello.startup.BookFileSVN;
-import com.xapp.utils.svn.SVNFacade;
-import com.xapp.utils.svn.SVNKitFacade;
-import com.xapp.application.utils.SwingUtils;
+import novello.startup.StartupCallback;
+import novello.startup.StartupScreen;
 
 import javax.swing.*;
-import java.io.File;
 import java.awt.*;
+import java.io.File;
 
 public class NovelloLauncher
 {

@@ -7,37 +7,25 @@
  */
 package novello;
 
-import com.xapp.application.api.ApplicationContainer;
-import com.xapp.application.api.Command;
-import com.xapp.application.api.Node;
-import com.xapp.application.api.NodeCommand;
-import com.xapp.application.api.SimpleApplication;
-import com.xapp.application.api.SpecialTreeGraphics;
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.application.utils.html.BrowserView;
-import com.xapp.application.utils.html.HTML;
-import com.xapp.application.utils.html.HTMLImpl;
-import com.xapp.objectmodelling.api.ClassDatabase;
-import com.xapp.objectmodelling.core.ListProperty;
-import com.xapp.objectmodelling.core.PropertyChangeTuple;
-import com.xapp.objectmodelling.tree.Tree;
-import com.xapp.objectmodelling.tree.TreeNode;
-import com.xapp.utils.svn.SVNFacade;
-import com.xapp.utils.svn.UpdateResult;
+import net.sf.xapp.application.api.ApplicationContainer;
+import net.sf.xapp.application.api.Node;
+import net.sf.xapp.application.api.NodeCommand;
+import net.sf.xapp.application.api.SimpleApplication;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.application.utils.html.HTML;
+import net.sf.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.objectmodelling.api.ClassDatabase;
+import net.sf.xapp.tree.TreeNode;
+import net.sf.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.utils.svn.UpdateResult;
 import novello.help.AboutPane;
 import novello.help.ReferenceCard;
-import novello.wordhandling.DictionaryType;
 import org.tmatesoft.svn.core.SVNException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public abstract class SvnApp<T> extends SimpleApplication<T> implements DocumentApplication {
     private UpdateAction m_updateAction = new UpdateAction();

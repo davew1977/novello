@@ -1,7 +1,7 @@
 package requiem;
 
-import com.xapp.application.api.Node;
-import com.xapp.application.api.SimpleTreeGraphics;
+import net.sf.xapp.application.api.Node;
+import net.sf.xapp.application.api.SimpleTreeGraphics;
 
 import javax.swing.*;
 

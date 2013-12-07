@@ -6,12 +6,12 @@
  */
 package novello.wordhandling;
 
-import com.xapp.utils.FileUtils;
-
-import java.util.*;
-
-import novello.utils.Lookup;
+import net.sf.xapp.utils.FileUtils;
 import novello.utils.CachedLookup;
+import novello.utils.Lookup;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
 
 public class ThesaurusLookup implements Lookup<String, Collection<String>>
 {

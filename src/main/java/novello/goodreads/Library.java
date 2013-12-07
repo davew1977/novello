@@ -6,12 +6,9 @@
  */
 package novello.goodreads;
 
-import com.xapp.utils.FileUtils;
-import com.xapp.utils.StringUtils;
-import com.xapp.application.api.Launcher;
-import com.xapp.marshalling.Unmarshaller;
-import com.xapp.marshalling.stringserializers.StringArraySerializer;
-import com.xapp.marshalling.stringserializers.StringListSerializer;
+import net.sf.xapp.application.api.Launcher;
+import net.sf.xapp.marshalling.Unmarshaller;
+import net.sf.xapp.utils.StringUtils;
 
 import java.util.List;
 

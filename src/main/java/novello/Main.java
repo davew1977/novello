@@ -7,10 +7,10 @@
  */
 package novello;
 
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.application.api.Launcher;
-import com.xapp.application.api.ApplicationContainer;
-import com.xapp.utils.svn.SVNFacade;
+import net.sf.xapp.application.api.ApplicationContainer;
+import net.sf.xapp.application.api.Launcher;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.utils.svn.SVNFacade;
 
 import java.awt.*;
 

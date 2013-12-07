@@ -6,7 +6,7 @@
  */
 package novello.undo;
 
-import com.xapp.application.editor.widgets.TextEditor;
+import net.sf.xapp.application.editor.text.TextEditor;
 
 public abstract class Update implements Undoable, Cloneable
 {

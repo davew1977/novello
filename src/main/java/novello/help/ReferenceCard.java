@@ -6,8 +6,8 @@
  */
 package novello.help;
 
-import com.xapp.application.utils.SwingUtils;
-import com.xapp.utils.FileUtils;
+import net.sf.xapp.application.utils.SwingUtils;
+import net.sf.xapp.utils.FileUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

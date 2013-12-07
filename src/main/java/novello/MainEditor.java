@@ -6,22 +6,22 @@
  */
 package novello;
 
-import com.xapp.application.utils.html.BrowserView;
-import com.xapp.application.utils.html.HTML;
-import com.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.application.utils.html.BrowserView;
+import net.sf.xapp.application.utils.html.HTML;
+import net.sf.xapp.application.utils.html.HTMLImpl;
+import novello.widgets.ChunkEditor;
 import novello.wordhandling.DictFileHandler;
 import novello.wordhandling.Dictionary;
-import novello.widgets.ChunkEditor;
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainEditor extends JScrollPane
 {

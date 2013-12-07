@@ -6,7 +6,7 @@
  */
 package novello.wikipedia;
 
-import com.xapp.marshalling.annotations.XMLMapping;
+import net.sf.xapp.annotations.marshalling.XMLMapping;
 
 import java.util.List;
 

@@ -6,8 +6,6 @@
  */
 package novello.wordhandling;
 
-import java.util.Map;
-
 public class Node
 {
 }

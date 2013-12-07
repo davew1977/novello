@@ -6,9 +6,8 @@
  */
 package novello.startup;
 
-import novello.FileType;
-import com.xapp.objectmodelling.annotations.ValidImplementations;
-import com.xapp.objectmodelling.annotations.PrimaryKey;
+import net.sf.xapp.annotations.objectmodelling.PrimaryKey;
+import net.sf.xapp.annotations.objectmodelling.ValidImplementations;
 
 @ValidImplementations({BookFileSVN.class})
 public class BookFile
