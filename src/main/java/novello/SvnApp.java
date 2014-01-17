@@ -78,10 +78,6 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         return m_svnFacade != null;
     }
 
-    protected ClassDatabase<T> classDatabase() {
-        return m_appContainer.getGuiContext().getClassDatabase();
-    }
-
     private void render(HTML html, Section section, boolean isRoot)
     {
         if (section instanceof Content)
