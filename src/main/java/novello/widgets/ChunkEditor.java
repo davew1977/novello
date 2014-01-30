@@ -40,7 +40,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 {
     private JScrollPane m_scrollPane;
     protected TextEditor m_textEditor;
-    private static final Color DARK_BLUE = new Color(0, 0, 180);
+    public static final Color DARK_BLUE = new Color(0, 0, 180);
     private static final Color DARKGREEN = new Color(0, 128, 0);
     public Dictionary m_dict;
     private ThesaurusService m_thesaurus = new ThesaurusService();
@@ -141,6 +141,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
+                        handleLine(line);
                     }
                 }
 
@@ -170,6 +171,10 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             m_textEditor.addAction("control SPACE", new PopUpMenuAction());
         }
         return m_textEditor;
+    }
+
+    protected void handleLine(TextEditor.Line line) {
+
     }
 
     private void findMatch(TextEditor.Line line)
