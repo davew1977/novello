@@ -45,7 +45,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public Dictionary m_dict;
     private ThesaurusService m_thesaurus = new ThesaurusService();
     private WikipediaService m_wikipediaService = new WikipediaService();
-    private UndoManager m_undoManager = new UndoManager();
 
     Pattern html = Pattern.compile("<[\\w\\W&&[^>]]*>");
     Pattern speech = Pattern.compile("[\"\u201c].*?[\"\u201d]");
@@ -53,8 +52,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     Pattern wholeLine = Pattern.compile(".*");
     public Pattern WORD_FOR_SPELLCHECK = Pattern.compile("[A-Za-z'\u2019]*");
     public Pattern WORD = Pattern.compile("[\\w'\u2019]*");
-    private UndoAction m_undoAction = new UndoAction();
-    private RedoAction m_redoAction = new RedoAction();
     private DocumentApplication mDocumentApplication;
     private MainEditor m_mainEditor;
 
@@ -95,10 +92,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
             {
                 public void handleNewText(int offs, String newText, Line linePreEdit, List<Line> lineOrLinesPostEdit)
                 {
-                    if (newText != null)
-                    {
-                        m_undoManager.textAdded(offs, newText);
-                    }
                     for (Line line : lineOrLinesPostEdit)
                     {
                         setBold(line.m_startIndex, line.length(), false);
@@ -141,13 +134,12 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
                             setBold(start, length, false);
                             setItalic(start, length);
                         }
-                        handleLine(line);
                     }
+                    ChunkEditor.this.handleNewText(offs, newText, linePreEdit, lineOrLinesPostEdit);
                 }
 
                 public void handleTextRemoved(int offs, int len, Line lineAffected, String removedText)
                 {
-                    m_undoManager.textRemoved(offs, removedText);
                     handleNewText(-1, null, null, Arrays.asList(lineAffected));
                 }
             };
@@ -166,14 +158,12 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
 
             m_textEditor.addAction("control shift SPACE", new WordCompleteAction());
             m_textEditor.addAction("control T", new ThesaurusAction());
-            m_textEditor.addAction("control Z", m_undoAction);
-            m_textEditor.addAction("control shift Z", m_redoAction);
             m_textEditor.addAction("control SPACE", new PopUpMenuAction());
         }
         return m_textEditor;
     }
 
-    protected void handleLine(TextEditor.Line line) {
+    protected void handleNewText(int offs, String newText, TextEditor.Line linePreEdit, List<TextEditor.Line> lineOrLinesPostEdit) {
 
     }
 
@@ -206,10 +196,7 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
     public void setValue(String value, Object target)
     {
         m_dict.reset();
-        m_undoManager.disable();
-        m_undoManager.init();
         getTextEditor().setText(value);
-        m_undoManager.enable();
         m_textEditor.clearLiveTemplate();
         m_textEditor.addLiveTemplate("a", "<a target=\"_blank\" href=\"$0\">$1</a>$2");
         m_textEditor.addLiveTemplate("b", "<b>$0</b>$1");
@@ -270,37 +257,6 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         chunkEditor.setNovelloApp(new NovelloApp(null));
         chunkEditor.setValue(chunk.getText(), null);
         SwingUtils.showInFrame(chunkEditor.getComponent());
-    }
-
-    private class UndoAction extends AbstractAction
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-
-            m_undoManager.disable();
-            m_undoManager.flush();
-            if (m_undoManager.canUndo())
-            {
-                Update update = m_undoManager.pullUndo();
-                update.undo(m_textEditor);
-            }
-            m_undoManager.enable();
-        }
-    }
-
-    private class RedoAction extends AbstractAction
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            m_undoManager.disable();
-            m_undoManager.flush();
-            if (m_undoManager.canRedo())
-            {
-                Update update = m_undoManager.pullRedo();
-                update.redo(m_textEditor);
-            }
-            m_undoManager.enable();
-        }
     }
 
     private class ThesaurusAction extends AbstractAction
