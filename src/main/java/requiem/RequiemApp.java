@@ -74,7 +74,7 @@ public class RequiemApp extends DocumentApp<Backlog> {
 
     public void doSplit(Text chunk)
     {
-        doSplit(chunk, m_appContainer.getNode(chunk));
+        doSplit(chunk, getAppContainer().getNode(chunk));
     }
 
     private void doSplit(Text textChunk, Node node)
@@ -103,9 +103,9 @@ public class RequiemApp extends DocumentApp<Backlog> {
                 newTask.setText(chunk);
                 contentList.add(newTask);
             }
-            m_appContainer.refreshNode(m_appContainer.getNode(workItem));
-            m_appContainer.expand(textChunk);
-            m_appContainer.getMainTree().requestFocusInWindow();
+            getAppContainer().refreshNode(getAppContainer().getNode(workItem));
+            getAppContainer().expand(textChunk);
+            getAppContainer().getMainTree().requestFocusInWindow();
         }
     }
 

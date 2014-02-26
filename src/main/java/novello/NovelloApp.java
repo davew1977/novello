@@ -43,7 +43,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
     {
         super.init(applicationContainer);
         m_browserView = new BrowserView();
-        m_classDatabase = m_appContainer.getGuiContext().getClassDatabase();
+        m_classDatabase = getAppContainer().getGuiContext().getClassDatabase();
         createHelpMenu();
 
     }
@@ -56,7 +56,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         help.add(about);
         help.add(referenceCard);
         SwingUtils.setFont(help);
-        m_appContainer.getMenuBar().add(help);
+        getAppContainer().getMenuBar().add(help);
     }
 
     private void setHtml(HTML html)
@@ -104,7 +104,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             html.p("word count: " + section.wordcount());
             render(html, section, true);
             setHtml(html);
-            m_appContainer.setUserPanel(m_browserView, true);
+            getAppContainer().setUserPanel(m_browserView, true);
         }
 
        return false;
@@ -112,7 +112,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
 
     @Override
     public TextHolder getTextHolder(Text text) {
-        Node node = m_appContainer.getNode(text);
+        Node node = getAppContainer().getNode(text);
         return node.getParent().getParent().wrappedObject();
     }
 
@@ -136,7 +136,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
 
     public void doSplit(Text chunk)
     {
-        doSplit(chunk, m_appContainer.getNode(chunk));
+        doSplit(chunk, getAppContainer().getNode(chunk));
     }
 
     private void doSplit(Text textChunk, Node node)
@@ -166,8 +166,8 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
                 newContent.getVersions().add(newTextChunk);
                 contentList.add(index + i, newContent);
             }
-            m_appContainer.refreshNode(m_appContainer.getNode(content.parent()));
-            m_appContainer.expand(textChunk);
+            getAppContainer().refreshNode(getAppContainer().getNode(content.parent()));
+            getAppContainer().expand(textChunk);
         }
     }
 
@@ -252,7 +252,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
 
     public Book getBook()
     {
-        return m_appContainer.getGuiContext().getInstance();
+        return getAppContainer().getGuiContext().getInstance();
     }
 
 
@@ -271,14 +271,14 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         public void execute(Node node)
         {
             Content content = (Content) node.wrappedObject();
-            m_appContainer.edit(content.latest());
+            getAppContainer().edit(content.latest());
         }
 
     }
 
     private String currentFilePath()
     {
-        return m_appContainer.getGuiContext().getCurrentFile().getAbsolutePath();
+        return getAppContainer().getGuiContext().getCurrentFile().getAbsolutePath();
     }
 
     private class AboutAction extends AbstractAction
@@ -292,7 +292,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         {
             JFrame f = SwingUtils.createFrame(new AboutPane());
             f.setTitle("About");
-            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setLocationRelativeTo(getAppContainer().getMainFrame());
             f.setVisible(true);
         }
     }
@@ -309,7 +309,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             JFrame f = SwingUtils.createFrame(new ReferenceCard().wrapInScrollPane());
             f.setAlwaysOnTop(true);
             f.setTitle("Reference Card");
-            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setLocationRelativeTo(getAppContainer().getMainFrame());
             f.setVisible(true);
         }
     }

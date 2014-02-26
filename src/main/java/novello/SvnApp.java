@@ -53,16 +53,16 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
         if (isSVNMode())
         {
-            m_appContainer.getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
-            m_appContainer.getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
-            m_appContainer.getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
+            getAppContainer().getToolBar().add(m_updateAction).setToolTipText("Fetch changes from the server");
+            getAppContainer().getToolBar().add(m_commitAction).setToolTipText("Saves and sends your changes to the server");
+            getAppContainer().getToolBar().add(m_revertAction).setToolTipText("Removes all your changes since your last commit");
             updateViewState();
-            m_appContainer.addBeforeHook(DefaultAction.QUIT, new ExitCommitHook());
+            getAppContainer().addBeforeHook(DefaultAction.QUIT, new ExitCommitHook());
             Box b = Box.createHorizontalBox();
             b.add(Box.createHorizontalStrut(10));
             b.add(new JLabel("user: " + m_svnFacade.getUsername()));
             SwingUtils.setFont(b);
-            m_appContainer.getToolBar().add(b);
+            getAppContainer().getToolBar().add(b);
         }
     }
 
@@ -132,11 +132,6 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         }
         return html;
     }
-
-    public ApplicationContainer getAppContainer()
-    {
-        return m_appContainer;
-    }
     @Override
     public void setStatusMessage(String message) {
         getAppContainer().setStatusMessage(message);
@@ -157,7 +152,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         public void execute(Node node)
         {
             Content content = (Content) node.wrappedObject();
-            m_appContainer.edit(content.latest());
+            getAppContainer().edit(content.latest());
         }
 
     }
@@ -171,7 +166,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
         public void actionPerformed(ActionEvent e)
         {
-            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to send your changes to the server?"))
+            if (SwingUtils.askUser(getAppContainer().getMainFrame(), "Are you sure you want to send your changes to the server?"))
             {
                 commit();
             }
@@ -187,7 +182,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
         public void actionPerformed(ActionEvent e)
         {
-            if (SwingUtils.askUser(m_appContainer.getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
+            if (SwingUtils.askUser(getAppContainer().getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
             {
                 m_svnFacade.revert(currentFilePath());
 
@@ -211,7 +206,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
             UpdateResult result = m_svnFacade.update(currentFilePath());
             if (result.isConflict())
             {
-                SwingUtils.warnUser(m_appContainer.getMainFrame(), "You have a conflict. You should close Novello and fix it manually\n" +
+                SwingUtils.warnUser(getAppContainer().getMainFrame(), "You have a conflict. You should close Novello and fix it manually\n" +
                         "You can revert the file, but then you will lose your changes");
             }
             else
@@ -222,7 +217,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
     }
 
     public void reloadFile() {
-        m_appContainer.disposeAndReload();
+        getAppContainer().disposeAndReload();
     }
 
     public String getCurrentUser()
@@ -232,7 +227,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
 
     private String currentFilePath()
     {
-        return m_appContainer.getGuiContext().getCurrentFile().getAbsolutePath();
+        return getAppContainer().getGuiContext().getCurrentFile().getAbsolutePath();
     }
 
     private class ExitCommitHook implements ApplicationContainer.Hook
@@ -240,7 +235,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         public void execute()
         {
             trySave();
-            int i = JOptionPane.showOptionDialog(m_appContainer.getMainFrame(),
+            int i = JOptionPane.showOptionDialog(getAppContainer().getMainFrame(),
                     "Would you like to commit your changes?", "SVN Commit",
                     JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (i == JOptionPane.YES_OPTION)
@@ -265,7 +260,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
             if (e.getCause() instanceof SVNException)
             {
                 SVNException svnException = (SVNException) e.getCause();
-                SwingUtils.warnUser(m_appContainer.getMainFrame(), svnException.getMessage());
+                SwingUtils.warnUser(getAppContainer().getMainFrame(), svnException.getMessage());
             }
             else
             {
@@ -285,7 +280,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         {
             JFrame f = SwingUtils.createFrame(new AboutPane());
             f.setTitle("About");
-            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setLocationRelativeTo(getAppContainer().getMainFrame());
             f.setVisible(true);
         }
     }
@@ -302,7 +297,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
             JFrame f = SwingUtils.createFrame(new ReferenceCard().wrapInScrollPane());
             f.setAlwaysOnTop(true);
             f.setTitle("Reference Card");
-            f.setLocationRelativeTo(m_appContainer.getMainFrame());
+            f.setLocationRelativeTo(getAppContainer().getMainFrame());
             f.setVisible(true);
         }
     }

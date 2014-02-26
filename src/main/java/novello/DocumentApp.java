@@ -27,11 +27,11 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
         super.init(applicationContainer);
         m_mainEditor = createMainEditor();
-        m_appContainer.setUserPanel(m_mainEditor, false);
+        getAppContainer().setUserPanel(m_mainEditor, false);
         //m_mainEditor.setResizeWeight(0.5);
 
         initAppData();
-        //m_appContainer.getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
+        //getAppContainer().getToolBar().add(new SaveAction(m_mainEditor, this)).setToolTipText("Save changes to disk");
 
     }
 
@@ -70,7 +70,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
     protected void initAppData()
     {
         String appDataFileName = appDataPrefix + "app-data.xml";
-        final File appDataFile = new File(m_appContainer.getGuiContext().getCurrentFile().getParentFile(), appDataFileName);
+        final File appDataFile = new File(getAppContainer().getGuiContext().getCurrentFile().getParentFile(), appDataFileName);
         if (appDataFile.exists())
         {
             try
@@ -79,7 +79,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
                 int div = m_appData.getDividerLocation();
                 if (div!=0)
                 {
-                    m_appContainer.setDividerLocation(div);
+                    getAppContainer().setDividerLocation(div);
                 }
             }
             catch (Exception e)
@@ -93,9 +93,9 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
             m_appData = new AppData();
         }
 
-        m_appContainer.addAfterHook(DefaultAction.SAVE, new ApplicationContainer.Hook() {
+        getAppContainer().addAfterHook(DefaultAction.SAVE, new ApplicationContainer.Hook() {
             public void execute() {
-                m_appData.setDividerLocation(m_appContainer.getDividerLocation());
+                m_appData.setDividerLocation(getAppContainer().getDividerLocation());
                 classDatabase().createMarshaller(AppData.class).marshal(appDataFile, m_appData);
             }
         });
@@ -104,7 +104,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     public boolean shouldSplit(Text chunk)
     {
-        return chunk.text().contains("\n,") && SwingUtils.askUser(m_appContainer.getMainFrame(), "Do splits?");
+        return chunk.text().contains("\n,") && SwingUtils.askUser(getAppContainer().getMainFrame(), "Do splits?");
     }
     @Override
     public boolean nodeSelected(Node node) {
@@ -123,14 +123,14 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         {
             TextHolder textHolder = node.wrappedObject();
             m_mainEditor.setChunk(textHolder.content());
-            m_appContainer.setUserPanel(m_mainEditor, false);
+            getAppContainer().setUserPanel(m_mainEditor, false);
             return true;
         }
         else if (node.isA(Text.class))
         {
             Text text = node.wrappedObject();
             m_mainEditor.setChunk(text);
-            m_appContainer.setUserPanel(m_mainEditor, false);
+            getAppContainer().setUserPanel(m_mainEditor, false);
             return true;
         }
         return false;
@@ -145,7 +145,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
             ClassModel cm = classDatabase().getClassModelBySimpleName(s[0]);
             Object o = cm.getInstanceNoCheck(s[1]);
             if(o!=null) {
-                m_appContainer.expand(o);
+                getAppContainer().expand(o);
                 if(o instanceof Text) {
                     Text text = (Text) o;
                     m_mainEditor.setChunk(text);
@@ -169,7 +169,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
     }
 
     public T getDocument() {
-        return m_appContainer.getGuiContext().getInstance();
+        return getAppContainer().getGuiContext().getInstance();
     }
 
 
