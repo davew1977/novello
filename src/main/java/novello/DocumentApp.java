@@ -115,7 +115,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
             ClassModel cm = classDatabase().getClassModel(o.getClass());
             if(cm.hasPrimaryKey())
             {
-                m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getPrimaryKey(o));
+                m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getGlobalKey(o));
             }
         }
 
