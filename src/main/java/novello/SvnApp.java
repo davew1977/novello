@@ -14,7 +14,6 @@ import net.sf.xapp.application.api.SimpleApplication;
 import net.sf.xapp.application.utils.SwingUtils;
 import net.sf.xapp.application.utils.html.HTML;
 import net.sf.xapp.application.utils.html.HTMLImpl;
-import net.sf.xapp.objectmodelling.api.ClassDatabase;
 import net.sf.xapp.tree.TreeNode;
 import net.sf.xapp.utils.svn.SVNFacade;
 import net.sf.xapp.utils.svn.UpdateResult;
@@ -25,6 +24,7 @@ import org.tmatesoft.svn.core.SVNException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.List;
 
 public abstract class SvnApp<T> extends SimpleApplication<T> implements DocumentApplication {
@@ -184,7 +184,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         {
             if (SwingUtils.askUser(getAppContainer().getMainFrame(), "Are you sure you want to undo all changes\nsince your last commit?"))
             {
-                m_svnFacade.revert(currentFilePath());
+                m_svnFacade.revert(currentFile());
 
                 reloadFile();
             }
@@ -203,7 +203,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         public void actionPerformed(ActionEvent e)
         {
             trySave();
-            UpdateResult result = m_svnFacade.update(currentFilePath());
+            UpdateResult result = m_svnFacade.update(currentFile());
             if (result.isConflict())
             {
                 SwingUtils.warnUser(getAppContainer().getMainFrame(), "You have a conflict. You should close Novello and fix it manually\n" +
@@ -225,9 +225,9 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         return m_svnFacade!=null ? m_svnFacade.getUsername() : "";
     }
 
-    private String currentFilePath()
+    private File currentFile()
     {
-        return getAppContainer().getGuiContext().getCurrentFile().getAbsolutePath();
+        return getAppContainer().getGuiContext().getCurrentFile();
     }
 
     private class ExitCommitHook implements ApplicationContainer.Hook
@@ -253,7 +253,7 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
         trySave();
         try
         {
-            m_svnFacade.commit(currentFilePath(), "changes");
+            m_svnFacade.commit("changes", currentFile());
         }
         catch (RuntimeException e)
         {
