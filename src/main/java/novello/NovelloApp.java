@@ -13,7 +13,6 @@ import net.sf.xapp.application.utils.html.BrowserView;
 import net.sf.xapp.application.utils.html.HTML;
 import net.sf.xapp.application.utils.html.HTMLImpl;
 import net.sf.xapp.objectmodelling.api.ClassDatabase;
-import net.sf.xapp.objectmodelling.core.ContainerProperty;
 import net.sf.xapp.objectmodelling.core.ListProperty;
 import net.sf.xapp.objectmodelling.core.PropertyChangeTuple;
 import net.sf.xapp.tree.Tree;
@@ -173,7 +172,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
     }
 
     @Override
-    public void nodeAboutToBeAdded(ContainerProperty listProperty, Object parent, Object newChild)
+    public void nodeAboutToBeAdded(ListProperty listProperty, Object parent, Object newChild)
     {
         if (parent instanceof Content) //new content version should be inited to last version
         {

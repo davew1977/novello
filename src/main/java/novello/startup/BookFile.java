@@ -6,7 +6,7 @@
  */
 package novello.startup;
 
-import net.sf.xapp.annotations.objectmodelling.GlobalKey;
+import net.sf.xapp.annotations.objectmodelling.PrimaryKey;
 import net.sf.xapp.annotations.objectmodelling.ValidImplementations;
 
 @ValidImplementations({BookFileSVN.class})
@@ -23,7 +23,7 @@ public class BookFile
     {
     }
 
-    @GlobalKey
+    @PrimaryKey
     public String getLocation()
     {
         return m_location;
