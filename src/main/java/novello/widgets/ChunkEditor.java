@@ -13,6 +13,7 @@ import net.sf.xapp.application.editor.widgets.AbstractPropertyWidget;
 import net.sf.xapp.application.utils.SwingUtils;
 import net.sf.xapp.application.utils.html.HTML;
 import net.sf.xapp.application.utils.html.HTMLImpl;
+import net.sf.xapp.objectmodelling.core.ObjectMeta;
 import net.sf.xapp.utils.StringUtils;
 import novello.*;
 import novello.undo.UndoManager;
@@ -193,8 +194,8 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         return m_textEditor.getText();
     }
 
-    public void setValue(String value, Object target)
-    {
+    @Override
+    public void setValue(String value, ObjectMeta target) {
         m_dict.reset();
         getTextEditor().setText(value);
         m_textEditor.clearLiveTemplate();
@@ -209,9 +210,9 @@ public class ChunkEditor extends AbstractPropertyWidget<String>
         m_textEditor.addLiveTemplate("c", "<!--$0-->");
         m_textEditor.addLiveTemplate("s", "\u201c$0\u201d$1");
 
-        if(target instanceof Content)
+        if(target != null && target.isA(Content.class))
         {
-            Content content = (Content) target;
+            Content content = (Content) target.getInstance();
             Map<String,String> customTemplates = content.resolveCustomLiveTemplates();
             for (Map.Entry<String, String> e : customTemplates.entrySet())
             {

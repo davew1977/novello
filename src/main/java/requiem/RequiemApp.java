@@ -4,9 +4,9 @@ import net.sf.xapp.application.api.Command;
 import net.sf.xapp.application.api.Node;
 import net.sf.xapp.application.api.NodeCommand;
 import net.sf.xapp.application.api.SpecialTreeGraphics;
-import net.sf.xapp.objectmodelling.core.PropertyChangeTuple;
-import net.sf.xapp.tree.Tree;
-import net.sf.xapp.tree.TreeNode;
+import net.sf.xapp.objectmodelling.core.PropertyChange;
+import net.sf.xapp.objectmodelling.core.Tree;
+import net.sf.xapp.objectmodelling.core.TreeNode;
 import net.sf.xapp.utils.svn.SVNFacade;
 import novello.DocumentApp;
 import novello.Text;
@@ -68,7 +68,7 @@ public class RequiemApp extends DocumentApp<Backlog> {
     }
 
     @Override
-    public void nodeUpdated(Node objectNode, Map<String, PropertyChangeTuple> changes) {
+    public void nodeUpdated(Node objectNode, Map<String, PropertyChange> changes) {
         tryTrimName(objectNode);
     }
 
@@ -83,7 +83,7 @@ public class RequiemApp extends DocumentApp<Backlog> {
 
         if (chunks.length > 1)
         {
-            Tree workItem = (Tree) textChunk;
+            /*Tree workItem = (Tree) textChunk;
             List<TreeNode> contentList = workItem.getChildren();
             int index = contentList.indexOf(textChunk);
             textChunk.setText("");
@@ -105,7 +105,7 @@ public class RequiemApp extends DocumentApp<Backlog> {
             }
             getAppContainer().refreshNode(getAppContainer().getNode(workItem));
             getAppContainer().expand(textChunk);
-            getAppContainer().getMainTree().requestFocusInWindow();
+            getAppContainer().getMainTree().requestFocusInWindow();*/
         }
     }
 

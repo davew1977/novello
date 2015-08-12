@@ -7,9 +7,12 @@
  */
 package novello;
 
+import net.sf.xapp.annotations.application.Container;
 import net.sf.xapp.annotations.application.EditorWidget;
+import net.sf.xapp.annotations.objectmodelling.NamespaceFor;
+import net.sf.xapp.annotations.objectmodelling.ValidImplementations;
 import net.sf.xapp.application.editor.widgets.FreeTextPropertyWidget;
-import net.sf.xapp.tree.Tree;
+import net.sf.xapp.objectmodelling.core.Tree;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,19 +21,22 @@ import java.util.Map;
 /**
  * "Sections" mark the structure of the document. Any text entered here is metadata
  */
-public class Section extends Tree
+@NamespaceFor(Section.class)
+@Container(listProperty = "sections")
+@ValidImplementations({Content.class, BlogPost.class})
+public class Section extends Tree<Section>
 {
     private String m_text;
     private boolean m_excluded;
     private String m_customLiveTemplates;
+    private List<Section> sections;
 
-    public Section(String s)
-    {
-        setName(s);
+    public Section() {
+        super(Section.class);
     }
 
-    public Section()
-    {
+    public Section(String name) {
+        super(Section.class, name);
     }
 
     @EditorWidget(FreeTextPropertyWidget.class)
@@ -55,7 +61,13 @@ public class Section extends Tree
         m_customLiveTemplates = customLiveTemplates;
     }
 
+    public List<Section> getSections() {
+        return sections;
+    }
 
+    public void setSections(List<Section> sections) {
+        this.sections = sections;
+    }
 
     public int wordcount()
     {
@@ -66,11 +78,6 @@ public class Section extends Tree
             if(!section.isExcluded())count+= section.wordcount();
         }
         return count;
-    }
-
-    public List<Section> children()
-    {
-        return (List) getChildren();
     }
 
     public void setExcluded(boolean excluded)
@@ -91,7 +98,7 @@ public class Section extends Tree
     public Map<String,String> resolveCustomLiveTemplates()
     {
         Map<String,String> liveTemplates = new HashMap<String, String>();
-        if(!_isRoot())
+        if(!isRoot())
         {
             liveTemplates.putAll(parent().resolveCustomLiveTemplates());
         }

@@ -9,6 +9,7 @@ package novello;
 
 import net.sf.xapp.application.api.PropertyWidget;
 import net.sf.xapp.application.api.WidgetContext;
+import net.sf.xapp.objectmodelling.core.ObjectMeta;
 import net.sf.xapp.objectmodelling.core.Property;
 
 import javax.swing.*;
@@ -44,8 +45,8 @@ public class SliderWidget implements PropertyWidget<Integer>
         return m_slider.getValue();
     }
 
-    public void setValue(Integer value, Object target)
-    {
+    @Override
+    public void setValue(Integer value, ObjectMeta target) {
         m_slider.setValue(value);
         System.out.println(value);
     }

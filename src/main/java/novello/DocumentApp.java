@@ -75,7 +75,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         {
             try
             {
-                m_appData = classDatabase().createUnmarshaller(AppData.class).unmarshal(appDataFile);
+                m_appData = classDatabase().createUnmarshaller(AppData.class).unmarshal(appDataFile).getInstance();
                 int div = m_appData.getDividerLocation();
                 if (div!=0)
                 {
@@ -113,9 +113,9 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
         if (o!=null)
         {
             ClassModel cm = classDatabase().getClassModel(o.getClass());
-            if(cm.hasPrimaryKey())
+            if(cm.hasKey())
             {
-                m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getPrimaryKey(o));
+                m_appData.setLastSelected(o.getClass().getSimpleName() + ":" + cm.getKey(o));
             }
         }
 
@@ -138,12 +138,12 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     protected void selectLastEditedContent()
     {
-        String lastEdited = m_appData.getLastSelected();
+        /*String lastEdited = m_appData.getLastSelected();
         if (lastEdited != null)
         {
             String[] s = lastEdited.split(":");
             ClassModel cm = classDatabase().getClassModelBySimpleName(s[0]);
-            Object o = cm.getInstanceNoCheck(s[1]);
+            Object o = cm.inst(s[1]);
             if(o!=null) {
                 getAppContainer().expand(o);
                 if(o instanceof Text) {
@@ -151,7 +151,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
                     m_mainEditor.setChunk(text);
                 }
             }
-        }
+        }*/
     }
 
     @Override
@@ -175,7 +175,7 @@ public abstract class DocumentApp<T extends Document> extends SvnApp<T> implemen
 
     @Override
     public TextHolder step(Direction pType, TextHolder pParentContent) {
-        return getDocTree().step(pType.getDelta(), pParentContent, TextHolder.class);
+        return null ;//getDocTree().step(pType.getDelta(), pParentContent, TextHolder.class);
     }
 
     @Override

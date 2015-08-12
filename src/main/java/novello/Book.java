@@ -78,6 +78,6 @@ public class Book implements Document
 
     public Content step(Direction back, Content next)
     {
-        return m_section.step(back.getDelta(), next, Content.class);
+        return null;//m_section.step(back.getDelta(), next, Content.class);
     }
 }

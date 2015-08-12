@@ -14,7 +14,6 @@ import net.sf.xapp.application.api.SimpleApplication;
 import net.sf.xapp.application.utils.SwingUtils;
 import net.sf.xapp.application.utils.html.HTML;
 import net.sf.xapp.application.utils.html.HTMLImpl;
-import net.sf.xapp.tree.TreeNode;
 import net.sf.xapp.utils.svn.SVNFacade;
 import net.sf.xapp.utils.svn.UpdateResult;
 import novello.help.AboutPane;
@@ -111,15 +110,14 @@ public abstract class SvnApp<T> extends SimpleApplication<T> implements Document
     {
         HTML html = new HTMLImpl();
         Section section = book.getSection();
-        List<TreeNode> treeNodes = section.getChildren();
-        for (TreeNode treeNode : treeNodes)
+        List<Section> treeNodes = section.getSections();
+        for (Section t : treeNodes)
         {
-            Section t = (Section) treeNode;
             if (!t.isExcluded())
             {
                 html.h(1, t.getName());
-                List<TreeNode> treeNodeList = t.getChildren();
-                for (TreeNode node : treeNodeList)
+                List<Section> treeNodeList = t.getSections();
+                for (Section node : treeNodeList)
                 {
                     if (node instanceof Content)
                     {
