@@ -7,8 +7,8 @@
 package novello;
 
 import net.sf.xapp.application.editor.text.TextEditor;
-import net.sf.xapp.objectmodelling.core.Tree;
-import net.sf.xapp.objectmodelling.core.TreeNode;
+import net.sf.xapp.tree.Tree;
+import net.sf.xapp.tree.TreeNode;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

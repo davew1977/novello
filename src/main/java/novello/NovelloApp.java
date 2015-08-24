@@ -13,7 +13,10 @@ import net.sf.xapp.application.utils.html.BrowserView;
 import net.sf.xapp.application.utils.html.HTML;
 import net.sf.xapp.application.utils.html.HTMLImpl;
 import net.sf.xapp.objectmodelling.api.ClassDatabase;
-import net.sf.xapp.objectmodelling.core.*;
+import net.sf.xapp.objectmodelling.core.ListProperty;
+import net.sf.xapp.objectmodelling.core.PropertyChangeTuple;
+import net.sf.xapp.tree.Tree;
+import net.sf.xapp.tree.TreeNode;
 import net.sf.xapp.utils.svn.SVNFacade;
 import novello.help.AboutPane;
 import novello.help.ReferenceCard;
@@ -113,8 +116,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         return node.getParent().getParent().wrappedObject();
     }
 
-    @Override
-    public void nodeUpdated(Node node, Map<String, PropertyChange> changes)
+    public void nodeUpdated(Node node, Map<String, PropertyChangeTuple> changes)
     {
         if (node.wrappedObject() instanceof TextChunk)
         {
@@ -142,7 +144,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
         String[] chunks = textChunk.text().split("\n,");
         if (chunks.length > 1)
         {
-            /*Content content = (Content) node.getParent().getParent().wrappedObject();
+            Content content = (Content) node.getParent().getParent().wrappedObject();
             List<TreeNode> contentList = content.parent().getChildren();
             int index = contentList.indexOf(content);
             textChunk.setText(chunks[0]);
@@ -156,26 +158,25 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
                     name = s[0];
                     chunk = s[1];
                 }
-                Content newContent = new Content();
+                Content newContent = (Content) m_classDatabase.newInstance(Content.class);
                 newContent.setName(name);
                 newContent.setParent(content.parent());
-                appContainer.getNodeUpdateApi().insertObject(node.parentObjectNode().toObjLocation(), newContent);
-
-                        TextChunk newTextChunk = new TextChunk();
+                TextChunk newTextChunk = (TextChunk) m_classDatabase.newInstance(TextChunk.class);
                 newTextChunk.setText(chunk);
                 newContent.getVersions().add(newTextChunk);
                 contentList.add(index + i, newContent);
             }
             getAppContainer().refreshNode(getAppContainer().getNode(content.parent()));
-            getAppContainer().expand(textChunk);*/
+            getAppContainer().expand(textChunk);
         }
     }
 
     @Override
-    public void nodeAboutToBeAdded(ObjectLocation homeLocation, ObjectMeta newChild) {
-        /*if (homeLocation.getObj().isA(Content.class)) //new content version should be inited to last version
+    public void nodeAboutToBeAdded(ListProperty listProperty, Object parent, Object newChild)
+    {
+        if (parent instanceof Content) //new content version should be inited to last version
         {
-            Content content = (Content) homeLocation.getObj().getInstance();
+            Content content = (Content) parent;
             TextChunk textChunk = (TextChunk) newChild;
             textChunk.setText(content.getLatestText());
         }
@@ -185,7 +186,7 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
             Tree tree = (Tree) parent;
             content.setName(String.valueOf(tree.getChildren().size() + 1));
             content.getVersions().add(new TextChunk());
-        }*/
+        }
     }
 
     private void render(HTML html, Section section, boolean isRoot)
@@ -221,14 +222,15 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
     {
         HTML html = new HTMLImpl();
         Section section = book.getSection();
-        List<Section> treeNodes = section.getSections();
-        for (Section t : treeNodes)
+        List<TreeNode> treeNodes = section.getChildren();
+        for (TreeNode treeNode : treeNodes)
         {
+            Section t = (Section) treeNode;
             if (!t.isExcluded())
             {
                 html.h(1, t.getName());
-                List<Section> treeNodeList = t.getSections();
-                for (Section node : treeNodeList)
+                List<TreeNode> treeNodeList = t.getChildren();
+                for (TreeNode node : treeNodeList)
                 {
                     if (node instanceof Content)
                     {
@@ -255,8 +257,8 @@ public class NovelloApp extends DocumentApp<Book> implements DocumentApplication
 
 
     @Override
-    public Tree getDocTree() {
-        return null; //getBook().getSection();
+    public Section getDocTree() {
+        return getBook().getSection();
     }
 
     private class EditLatestCommand extends NodeCommand

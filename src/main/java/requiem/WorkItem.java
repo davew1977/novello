@@ -5,7 +5,7 @@ import net.sf.xapp.annotations.application.Mandatory;
 import net.sf.xapp.annotations.marshalling.FormattedText;
 import net.sf.xapp.annotations.objectmodelling.Reference;
 import net.sf.xapp.annotations.objectmodelling.ValidImplementations;
-import net.sf.xapp.objectmodelling.core.Tree;
+import net.sf.xapp.tree.Tree;
 import novello.Text;
 import novello.TextHolder;
 import novello.widgets.ChunkEditor;

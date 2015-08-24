@@ -1,6 +1,8 @@
 <Book localDictionary="">
   <Section name="workspace">
+    <Children>
       <Section name="section1">
+        <Children>
           <Content grade="0" name="1">
             <Versions>
               <TextChunk/>
@@ -11,13 +13,17 @@
               <TextChunk/>
             </Versions>
           </Content>
+        </Children>
       </Section>
       <Section name="section2">
+        <Children>
           <Content grade="0" name="1">
             <Versions>
               <TextChunk/>
             </Versions>
           </Content>
+        </Children>
       </Section>
+    </Children>
   </Section>
 </Book>

@@ -99,7 +99,7 @@ public class MainEditor extends JScrollPane
         m_chunk = textChunk;
         parent = mDocumentApplication.getTextHolder(textChunk);
         render();
-        m_chunkEditor.setValue(textChunk.text(), null);
+        m_chunkEditor.setValue(textChunk.text(), parent);
         updateWordCount();
     }
 
